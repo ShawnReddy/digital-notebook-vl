@@ -1,9 +1,13 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Users, UserCheck, UserX, Building, Calendar, BarChart3 } from 'lucide-react';
+import { Users, UserCheck, UserX, Building, Calendar, BarChart3, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
+  const { userProfile, signOut } = useAuth();
+  
   const navItems = [
     { name: 'Dashboard', path: '/', icon: BarChart3 },
     { name: 'Clients', path: '/clients', icon: Users },
@@ -12,6 +16,12 @@ const Header = () => {
     { name: 'MHA', path: '/mha', icon: Building },
     { name: 'Events', path: '/events', icon: Calendar },
   ];
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const displayName = userProfile?.full_name || 'User';
 
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50 shadow-sm">
@@ -50,11 +60,19 @@ const Header = () => {
           <div className="flex items-center space-x-4">
             <div className="hidden sm:block text-right">
               <p className="text-xs text-slate-500">Welcome back</p>
-              <p className="text-sm font-semibold text-slate-900">Sales Executive</p>
+              <p className="text-sm font-semibold text-slate-900">{displayName}</p>
             </div>
             <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-sm font-bold">SE</span>
+              <span className="text-white text-sm font-bold">{getInitials(displayName)}</span>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="text-slate-600 hover:text-slate-900"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </div>
