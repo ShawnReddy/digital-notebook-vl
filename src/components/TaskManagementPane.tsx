@@ -82,10 +82,20 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-700 border-red-200';
-      case 'medium': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'low': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'high': return 'bg-red-50 text-red-700 border-red-200';
+      case 'medium': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'low': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    const iconClass = "w-3 h-3";
+    switch (priority) {
+      case 'high': return <Flag className={`${iconClass} text-red-500`} fill="currentColor" />;
+      case 'medium': return <Flag className={`${iconClass} text-amber-500`} fill="currentColor" />;
+      case 'low': return <Flag className={`${iconClass} text-emerald-500`} fill="currentColor" />;
+      default: return <Flag className={`${iconClass} text-gray-500`} />;
     }
   };
 
@@ -101,50 +111,61 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
   const renderTaskList = (tasks: Task[], showAddButton = false) => (
     <div className="space-y-3">
       {showAddButton && (
-        <div className="flex justify-end">
+        <div className="flex justify-end mb-4">
           <Button 
             onClick={onAddPersonalTask}
             variant="outline"
             size="sm"
-            className="border-dashed border-slate-300 text-slate-600 hover:bg-slate-50"
+            className="border-dashed border-2 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-sm"
           >
-            <Plus className="w-3 h-3 mr-1" />
+            <Plus className="w-3 h-3 mr-1" strokeWidth={2.5} />
             Add Task
           </Button>
         </div>
       )}
       {tasks.map((task) => (
-        <div key={task.id} className="bg-gradient-to-r from-slate-50 to-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
-          <div className="flex items-start justify-between mb-3">
-            <h4 className="font-semibold text-slate-900 flex-1 pr-2">{task.title}</h4>
-            <Badge className={`px-2 py-1 text-xs font-medium ${getPriorityColor(task.priority)}`}>
-              {task.priority}
-            </Badge>
+        <div key={task.id} className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:shadow-blue-100/50 transition-all duration-300 hover:border-blue-200 hover:-translate-y-0.5">
+          {/* Priority indicator line */}
+          <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
+            task.priority === 'high' ? 'bg-red-400' :
+            task.priority === 'medium' ? 'bg-amber-400' : 'bg-emerald-400'
+          }`} />
+          
+          <div className="flex items-start justify-between mb-4">
+            <h4 className="font-semibold text-slate-900 flex-1 pr-3 leading-relaxed group-hover:text-blue-900 transition-colors duration-200">
+              {task.title}
+            </h4>
+            <div className="flex items-center space-x-2">
+              <Badge className={`px-3 py-1.5 text-xs font-medium rounded-full border ${getPriorityColor(task.priority)} flex items-center space-x-1.5`}>
+                {getPriorityIcon(task.priority)}
+                <span className="capitalize">{task.priority}</span>
+              </Badge>
+            </div>
           </div>
           
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center space-x-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
               <div className="flex items-center text-slate-600">
-                <div className="w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center text-xs font-semibold mr-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-slate-200 to-slate-300 rounded-full flex items-center justify-center text-xs font-bold mr-3 shadow-sm">
                   {getInitials(task.assignee)}
                 </div>
-                {task.assignee}
+                <span className="font-medium">{task.assignee}</span>
               </div>
               {task.source === 'compass' && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs px-2 py-1 bg-blue-50 text-blue-700 border-blue-200">
                   Compass
                 </Badge>
               )}
             </div>
             
             <div className="flex items-center space-x-4 text-slate-500">
-              <div className="flex items-center">
-                <Calendar className="w-3 h-3 mr-1" />
-                {formatDate(task.dueDate)}
+              <div className="flex items-center bg-slate-50 px-3 py-1.5 rounded-full">
+                <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                <span className="text-sm font-medium">{formatDate(task.dueDate)}</span>
               </div>
-              <div className="flex items-center">
-                <Clock className="w-3 h-3 mr-1" />
-                {task.dueTime}
+              <div className="flex items-center bg-slate-50 px-3 py-1.5 rounded-full">
+                <Clock className="w-3.5 h-3.5 mr-1.5" />
+                <span className="text-sm font-medium">{task.dueTime}</span>
               </div>
             </div>
           </div>
@@ -155,14 +176,17 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
 
   return (
     <TooltipProvider>
-      <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm h-full">
-        <CardHeader className="pb-4">
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/30 backdrop-blur-sm h-full">
+        <CardHeader className="pb-6">
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl font-bold text-slate-900 flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                <Flag className="w-4 h-4 text-white" />
+              </div>
               Task Management
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" className="ml-2 p-1 h-6 w-6">
+                  <Button variant="ghost" size="sm" className="ml-2 p-1 h-6 w-6 hover:bg-blue-100">
                     <Info className="w-3 h-3 text-slate-400" />
                   </Button>
                 </TooltipTrigger>
@@ -173,34 +197,44 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
             </CardTitle>
           </div>
           
-          {/* Tab Navigation */}
-          <div className="flex space-x-1 bg-slate-100 rounded-lg p-1 mt-4">
+          {/* Enhanced Tab Navigation */}
+          <div className="flex space-x-1 bg-slate-100/70 rounded-xl p-1.5 mt-6 backdrop-blur-sm">
             <button
               onClick={() => setActiveTab('team')}
-              className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-300 ${
                 activeTab === 'team'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-blue-700 shadow-md shadow-blue-100/50 transform scale-[1.02]'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              <Users className="w-4 h-4 mr-2" />
+              <Users className="w-4 h-4 mr-2" strokeWidth={2.5} />
               Team Tasks
+              <div className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === 'team' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'
+              }`}>
+                {teamTasks.length}
+              </div>
             </button>
             <button
               onClick={() => setActiveTab('personal')}
-              className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-300 ${
                 activeTab === 'personal'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-blue-700 shadow-md shadow-blue-100/50 transform scale-[1.02]'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               }`}
             >
-              <User className="w-4 h-4 mr-2" />
+              <User className="w-4 h-4 mr-2" strokeWidth={2.5} />
               My Tasks
+              <div className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === 'personal' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'
+              }`}>
+                {personalTasks.length}
+              </div>
             </button>
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+        <CardContent className="space-y-4 max-h-96 overflow-y-auto px-6 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
           {activeTab === 'team' && renderTaskList(teamTasks)}
           {activeTab === 'personal' && renderTaskList(personalTasks, true)}
         </CardContent>
