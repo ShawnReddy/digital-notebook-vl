@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Clock, Building2, FileText } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface Meeting {
   id: string;
@@ -18,6 +19,8 @@ interface MeetingCardProps {
 }
 
 const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onBriefClick, showConnector = false }) => {
+  const { toast } = useToast();
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'call': return '📞';
@@ -25,6 +28,19 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onBriefClick, showCo
       case 'demo': return '💻';
       default: return '📅';
     }
+  };
+
+  const handleJoinCall = () => {
+    // Simulate joining MS Teams call via Compass integration
+    toast({
+      title: "Joining MS Teams Meeting",
+      description: `Opening ${meeting.title} with ${meeting.client} via Compass integration...`,
+    });
+    
+    // Simulate opening MS Teams (in a real implementation, this would open the actual Teams link)
+    setTimeout(() => {
+      window.open(`https://teams.microsoft.com/l/meetup-join/placeholder-meeting-id`, '_blank');
+    }, 1000);
   };
 
   return (
@@ -47,7 +63,12 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onBriefClick, showCo
           </div>
         </div>
         <div className="flex-shrink-0 flex flex-col space-y-2">
-          <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleJoinCall}
+            className="opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 hover:from-blue-100 hover:to-indigo-100"
+          >
             Join
           </Button>
           <Button 
