@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Users, User, Clock, Flag, Calendar, Info, Check } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Plus, Users, User, Clock, Flag, Calendar, Info } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -23,10 +22,9 @@ interface TaskManagementPaneProps {
 
 const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTask }) => {
   const [activeTab, setActiveTab] = useState<'team' | 'personal'>('team');
-  const { toast } = useToast();
 
   // Mock data - these would come from Compass CRM
-  const [teamTasks, setTeamTasks] = useState<Task[]>([
+  const teamTasks: Task[] = [
     {
       id: '1',
       title: 'Review Q4 sales pipeline with marketing team',
@@ -57,9 +55,9 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
       status: 'pending',
       source: 'compass'
     }
-  ]);
+  ];
 
-  const [personalTasks, setPersonalTasks] = useState<Task[]>([
+  const personalTasks: Task[] = [
     {
       id: '4',
       title: 'Follow up with ABC Corp proposal',
@@ -80,25 +78,7 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
       status: 'pending',
       source: 'manual'
     }
-  ]);
-
-  const handleCompleteTask = (taskId: string, isTeamTask: boolean) => {
-    if (isTeamTask) {
-      const task = teamTasks.find(t => t.id === taskId);
-      setTeamTasks(teamTasks.filter(t => t.id !== taskId));
-      toast({
-        title: "Task Completed",
-        description: `"${task?.title}" has been marked as complete and removed.`,
-      });
-    } else {
-      const task = personalTasks.find(t => t.id === taskId);
-      setPersonalTasks(personalTasks.filter(t => t.id !== taskId));
-      toast({
-        title: "Task Completed",
-        description: `"${task?.title}" has been marked as complete and removed.`,
-      });
-    }
-  };
+  ];
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -128,7 +108,7 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const renderTaskList = (tasks: Task[], showAddButton = false, isTeamTask = true) => (
+  const renderTaskList = (tasks: Task[], showAddButton = false) => (
     <div className="space-y-3">
       {showAddButton && (
         <div className="flex justify-end mb-4">
@@ -160,15 +140,6 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
                 {getPriorityIcon(task.priority)}
                 <span className="capitalize">{task.priority}</span>
               </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleCompleteTask(task.id, isTeamTask)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 p-0 rounded-full bg-green-50 hover:bg-green-100 border border-green-200 hover:border-green-300"
-                title="Mark as complete"
-              >
-                <Check className="w-4 h-4 text-green-600" />
-              </Button>
             </div>
           </div>
           
@@ -264,8 +235,8 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
         </CardHeader>
         
         <CardContent className="space-y-4 max-h-96 overflow-y-auto px-6 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-          {activeTab === 'team' && renderTaskList(teamTasks, false, true)}
-          {activeTab === 'personal' && renderTaskList(personalTasks, true, false)}
+          {activeTab === 'team' && renderTaskList(teamTasks)}
+          {activeTab === 'personal' && renderTaskList(personalTasks, true)}
         </CardContent>
       </Card>
     </TooltipProvider>
