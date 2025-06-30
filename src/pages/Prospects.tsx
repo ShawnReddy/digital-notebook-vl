@@ -1,10 +1,11 @@
-
 import React, { useState } from 'react';
 import { Search, Filter, TrendingUp, Phone, Mail, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 interface Prospect {
   id: string;
@@ -21,6 +22,9 @@ interface Prospect {
 
 const Prospects = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [stageFilter, setStageFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
+  const { toast } = useToast();
   const [prospects, setProspects] = useState<Prospect[]>([
     {
       id: '1',
@@ -78,6 +82,18 @@ const Prospects = () => {
     ));
   };
 
+  const handleAddToDashboard = () => {
+    const selectedProspects = prospects.filter(p => p.selected);
+    if (selectedProspects.length > 0) {
+      toast({
+        title: "Added to Dashboard",
+        description: `${selectedProspects.length} prospect${selectedProspects.length > 1 ? 's' : ''} added to your dashboard.`,
+      });
+      // Clear selections after adding
+      setProspects(prospects.map(prospect => ({ ...prospect, selected: false })));
+    }
+  };
+
   const getStageColor = (stage: string) => {
     switch (stage) {
       case 'hot': return 'bg-red-100 text-red-800';
@@ -87,10 +103,12 @@ const Prospects = () => {
     }
   };
 
-  const filteredProspects = prospects.filter(prospect =>
-    prospect.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    prospect.company.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProspects = prospects.filter(prospect => {
+    const matchesSearch = prospect.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prospect.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStage = stageFilter === 'all' || prospect.stage === stageFilter;
+    return matchesSearch && matchesStage;
+  });
 
   const selectedCount = prospects.filter(p => p.selected).length;
 
@@ -102,24 +120,52 @@ const Prospects = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search prospects..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button variant="outline" className="flex items-center">
-          <Filter className="w-4 h-4 mr-2" />
-          Filter
-        </Button>
-        {selectedCount > 0 && (
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            Add {selectedCount} to Dashboard
+      <div className="mb-6 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search prospects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button 
+            variant="outline" 
+            className="flex items-center"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filter
           </Button>
+          {selectedCount > 0 && (
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleAddToDashboard}
+            >
+              Add {selectedCount} to Dashboard
+            </Button>
+          )}
+        </div>
+
+        {showFilters && (
+          <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">Stage:</label>
+              <Select value={stageFilter} onValueChange={setStageFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="hot">Hot</SelectItem>
+                  <SelectItem value="warm">Warm</SelectItem>
+                  <SelectItem value="cold">Cold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         )}
       </div>
 

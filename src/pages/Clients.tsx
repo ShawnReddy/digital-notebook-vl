@@ -1,10 +1,11 @@
-
 import React, { useState } from 'react';
 import { Search, Filter, Star, Phone, Mail, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 interface Client {
   id: string;
@@ -21,6 +22,9 @@ interface Client {
 
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
+  const { toast } = useToast();
   const [clients, setClients] = useState<Client[]>([
     {
       id: '1',
@@ -78,6 +82,18 @@ const Clients = () => {
     ));
   };
 
+  const handleAddToDashboard = () => {
+    const selectedClients = clients.filter(c => c.selected);
+    if (selectedClients.length > 0) {
+      toast({
+        title: "Added to Dashboard",
+        description: `${selectedClients.length} client${selectedClients.length > 1 ? 's' : ''} added to your dashboard.`,
+      });
+      // Clear selections after adding
+      setClients(clients.map(client => ({ ...client, selected: false })));
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
@@ -87,10 +103,12 @@ const Clients = () => {
     }
   };
 
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.company.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredClients = clients.filter(client => {
+    const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const selectedCount = clients.filter(c => c.selected).length;
 
@@ -102,24 +120,52 @@ const Clients = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search clients..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button variant="outline" className="flex items-center">
-          <Filter className="w-4 h-4 mr-2" />
-          Filter
-        </Button>
-        {selectedCount > 0 && (
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            Add {selectedCount} to Dashboard
+      <div className="mb-6 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search clients..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button 
+            variant="outline" 
+            className="flex items-center"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filter
           </Button>
+          {selectedCount > 0 && (
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleAddToDashboard}
+            >
+              Add {selectedCount} to Dashboard
+            </Button>
+          )}
+        </div>
+
+        {showFilters && (
+          <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">Status:</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="growing">Growing</SelectItem>
+                  <SelectItem value="at-risk">At Risk</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         )}
       </div>
 

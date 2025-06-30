@@ -1,10 +1,11 @@
-
 import React, { useState } from 'react';
 import { Search, Filter, Clock, Phone, Mail, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 interface InactiveClient {
   id: string;
@@ -21,6 +22,9 @@ interface InactiveClient {
 
 const InactiveClients = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [reasonFilter, setReasonFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
+  const { toast } = useToast();
   const [inactiveClients, setInactiveClients] = useState<InactiveClient[]>([
     {
       id: '1',
@@ -78,6 +82,18 @@ const InactiveClients = () => {
     ));
   };
 
+  const handleReactivate = () => {
+    const selectedClients = inactiveClients.filter(c => c.selected);
+    if (selectedClients.length > 0) {
+      toast({
+        title: "Reactivation Started",
+        description: `${selectedClients.length} client${selectedClients.length > 1 ? 's' : ''} marked for reactivation.`,
+      });
+      // Clear selections after reactivating
+      setInactiveClients(inactiveClients.map(client => ({ ...client, selected: false })));
+    }
+  };
+
   const getReasonColor = (reason: string) => {
     switch (reason) {
       case 'contract-ended': return 'bg-blue-100 text-blue-800';
@@ -98,10 +114,12 @@ const InactiveClients = () => {
     }
   };
 
-  const filteredClients = inactiveClients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.company.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredClients = inactiveClients.filter(client => {
+    const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesReason = reasonFilter === 'all' || client.reason === reasonFilter;
+    return matchesSearch && matchesReason;
+  });
 
   const selectedCount = inactiveClients.filter(c => c.selected).length;
 
@@ -113,24 +131,53 @@ const InactiveClients = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search inactive clients..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button variant="outline" className="flex items-center">
-          <Filter className="w-4 h-4 mr-2" />
-          Filter
-        </Button>
-        {selectedCount > 0 && (
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            Reactivate {selectedCount} Client{selectedCount > 1 ? 's' : ''}
+      <div className="mb-6 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search inactive clients..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button 
+            variant="outline" 
+            className="flex items-center"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filter
           </Button>
+          {selectedCount > 0 && (
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleReactivate}
+            >
+              Reactivate {selectedCount} Client{selectedCount > 1 ? 's' : ''}
+            </Button>
+          )}
+        </div>
+
+        {showFilters && (
+          <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">Reason:</label>
+              <Select value={reasonFilter} onValueChange={setReasonFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="contract-ended">Contract Ended</SelectItem>
+                  <SelectItem value="non-payment">Non-Payment</SelectItem>
+                  <SelectItem value="merger">Merger/Acquisition</SelectItem>
+                  <SelectItem value="budget-cuts">Budget Cuts</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         )}
       </div>
 

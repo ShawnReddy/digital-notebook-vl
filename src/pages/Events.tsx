@@ -1,10 +1,11 @@
-
 import React, { useState } from 'react';
 import { Search, Filter, Calendar, MapPin, Users, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 interface Event {
   id: string;
@@ -21,6 +22,10 @@ interface Event {
 
 const Events = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
+  const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([
     {
       id: '1',
@@ -78,6 +83,18 @@ const Events = () => {
     ));
   };
 
+  const handleAddToDashboard = () => {
+    const selectedEvents = events.filter(e => e.selected);
+    if (selectedEvents.length > 0) {
+      toast({
+        title: "Added to Dashboard",
+        description: `${selectedEvents.length} event${selectedEvents.length > 1 ? 's' : ''} added to your dashboard.`,
+      });
+      // Clear selections after adding
+      setEvents(events.map(event => ({ ...event, selected: false })));
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'upcoming': return 'bg-blue-100 text-blue-800';
@@ -97,10 +114,13 @@ const Events = () => {
     }
   };
 
-  const filteredEvents = events.filter(event =>
-    event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    event.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = typeFilter === 'all' || event.type === typeFilter;
+    const matchesStatus = statusFilter === 'all' || event.status === statusFilter;
+    return matchesSearch && matchesType && matchesStatus;
+  });
 
   const selectedCount = events.filter(e => e.selected).length;
 
@@ -112,24 +132,67 @@ const Events = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search events..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button variant="outline" className="flex items-center">
-          <Filter className="w-4 h-4 mr-2" />
-          Filter
-        </Button>
-        {selectedCount > 0 && (
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            Add {selectedCount} to Dashboard
+      <div className="mb-6 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search events..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button 
+            variant="outline" 
+            className="flex items-center"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filter
           </Button>
+          {selectedCount > 0 && (
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleAddToDashboard}
+            >
+              Add {selectedCount} to Dashboard
+            </Button>
+          )}
+        </div>
+
+        {showFilters && (
+          <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">Type:</label>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="conference">Conference</SelectItem>
+                  <SelectItem value="webinar">Webinar</SelectItem>
+                  <SelectItem value="meeting">Meeting</SelectItem>
+                  <SelectItem value="workshop">Workshop</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700">Status:</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="upcoming">Upcoming</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         )}
       </div>
 
