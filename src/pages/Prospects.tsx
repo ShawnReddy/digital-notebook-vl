@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import BriefModal from '@/components/BriefModal';
 
 interface Prospect {
   id: string;
@@ -20,11 +21,22 @@ interface Prospect {
   selected: boolean;
 }
 
+interface Meeting {
+  id: string;
+  title: string;
+  client: string;
+  time: string;
+  type: 'call' | 'meeting' | 'demo';
+}
+
 const Prospects = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
+  const [selectedProspectForBrief, setSelectedProspectForBrief] = useState<Meeting | null>(null);
   const { toast } = useToast();
+  
   const [prospects, setProspects] = useState<Prospect[]>([
     {
       id: '1',
@@ -92,6 +104,19 @@ const Prospects = () => {
       // Clear selections after adding
       setProspects(prospects.map(prospect => ({ ...prospect, selected: false })));
     }
+  };
+
+  const handleProspectClick = (prospect: Prospect) => {
+    // Convert prospect data to meeting format for the brief modal
+    const meetingData: Meeting = {
+      id: prospect.id,
+      title: `Prospect Brief - ${prospect.name}`,
+      client: prospect.company,
+      time: 'Current',
+      type: 'call'
+    };
+    setSelectedProspectForBrief(meetingData);
+    setIsBriefModalOpen(true);
   };
 
   const getStageColor = (stage: string) => {
@@ -172,13 +197,21 @@ const Prospects = () => {
       {/* Prospects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProspects.map((prospect) => (
-          <Card key={prospect.id} className="hover:shadow-lg transition-shadow duration-200">
+          <Card 
+            key={prospect.id} 
+            className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+            onClick={() => handleProspectClick(prospect)}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     checked={prospect.selected}
-                    onCheckedChange={() => handleProspectSelect(prospect.id)}
+                    onCheckedChange={(e) => {
+                      e.stopPropagation();
+                      handleProspectSelect(prospect.id);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <div>
                     <CardTitle className="text-lg">{prospect.name}</CardTitle>
@@ -226,6 +259,15 @@ const Prospects = () => {
           <p className="text-gray-500">No prospects found matching your search.</p>
         </div>
       )}
+
+      <BriefModal
+        isOpen={isBriefModalOpen}
+        onClose={() => {
+          setIsBriefModalOpen(false);
+          setSelectedProspectForBrief(null);
+        }}
+        meeting={selectedProspectForBrief}
+      />
     </div>
   );
 };

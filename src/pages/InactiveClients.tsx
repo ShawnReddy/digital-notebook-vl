@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import BriefModal from '@/components/BriefModal';
 
 interface InactiveClient {
   id: string;
@@ -20,11 +21,22 @@ interface InactiveClient {
   selected: boolean;
 }
 
+interface Meeting {
+  id: string;
+  title: string;
+  client: string;
+  time: string;
+  type: 'call' | 'meeting' | 'demo';
+}
+
 const InactiveClients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [reasonFilter, setReasonFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
+  const [selectedClientForBrief, setSelectedClientForBrief] = useState<Meeting | null>(null);
   const { toast } = useToast();
+  
   const [inactiveClients, setInactiveClients] = useState<InactiveClient[]>([
     {
       id: '1',
@@ -92,6 +104,19 @@ const InactiveClients = () => {
       // Clear selections after reactivating
       setInactiveClients(inactiveClients.map(client => ({ ...client, selected: false })));
     }
+  };
+
+  const handleClientClick = (client: InactiveClient) => {
+    // Convert inactive client data to meeting format for the brief modal
+    const meetingData: Meeting = {
+      id: client.id,
+      title: `Inactive Client Brief - ${client.name}`,
+      client: client.company,
+      time: 'Current',
+      type: 'meeting'
+    };
+    setSelectedClientForBrief(meetingData);
+    setIsBriefModalOpen(true);
   };
 
   const getReasonColor = (reason: string) => {
@@ -184,13 +209,21 @@ const InactiveClients = () => {
       {/* Inactive Clients Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredClients.map((client) => (
-          <Card key={client.id} className="hover:shadow-lg transition-shadow duration-200 border-gray-200">
+          <Card 
+            key={client.id} 
+            className="hover:shadow-lg transition-shadow duration-200 border-gray-200 cursor-pointer"
+            onClick={() => handleClientClick(client)}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     checked={client.selected}
-                    onCheckedChange={() => handleClientSelect(client.id)}
+                    onCheckedChange={(e) => {
+                      e.stopPropagation();
+                      handleClientSelect(client.id);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <div>
                     <CardTitle className="text-lg text-gray-700">{client.name}</CardTitle>
@@ -238,6 +271,15 @@ const InactiveClients = () => {
           <p className="text-gray-500">No inactive clients found matching your search.</p>
         </div>
       )}
+
+      <BriefModal
+        isOpen={isBriefModalOpen}
+        onClose={() => {
+          setIsBriefModalOpen(false);
+          setSelectedClientForBrief(null);
+        }}
+        meeting={selectedClientForBrief}
+      />
     </div>
   );
 };
