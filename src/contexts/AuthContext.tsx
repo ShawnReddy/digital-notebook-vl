@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -117,8 +118,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUserProfile(null);
+    try {
+      console.log('Signing out user...');
+      
+      // Clear local state immediately
+      setUser(null);
+      setSession(null);
+      setUserProfile(null);
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Logout error:', error);
+        toast({
+          title: "Logout failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        console.log('Successfully signed out');
+        toast({
+          title: "Logged out",
+          description: "You have been successfully logged out."
+        });
+      }
+    } catch (error) {
+      console.error('Unexpected logout error:', error);
+      toast({
+        title: "Logout failed",
+        description: "An unexpected error occurred during logout.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
