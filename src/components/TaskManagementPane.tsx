@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users, User, Clock, Flag, Calendar } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Plus, Users, User, Clock, Flag, Calendar, Info } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -101,14 +101,17 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
   const renderTaskList = (tasks: Task[], showAddButton = false) => (
     <div className="space-y-3">
       {showAddButton && (
-        <Button 
-          onClick={onAddPersonalTask}
-          variant="outline"
-          className="w-full justify-start border-dashed border-slate-300 text-slate-600 hover:bg-slate-50"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Personal Task
-        </Button>
+        <div className="flex justify-end">
+          <Button 
+            onClick={onAddPersonalTask}
+            variant="outline"
+            size="sm"
+            className="border-dashed border-slate-300 text-slate-600 hover:bg-slate-50"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Add Task
+          </Button>
+        </div>
       )}
       {tasks.map((task) => (
         <div key={task.id} className="bg-gradient-to-r from-slate-50 to-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
@@ -151,42 +154,58 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
   );
 
   return (
-    <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm h-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-bold text-slate-900">Task Management</CardTitle>
+    <TooltipProvider>
+      <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm h-full">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-bold text-slate-900 flex items-center">
+              Task Management
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" className="ml-2 p-1 h-6 w-6">
+                    <Info className="w-3 h-3 text-slate-400" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Information is populated via your Compass account</p>
+                </TooltipContent>
+              </Tooltip>
+            </CardTitle>
+          </div>
+          
+          {/* Tab Navigation */}
+          <div className="flex space-x-1 bg-slate-100 rounded-lg p-1 mt-4">
+            <button
+              onClick={() => setActiveTab('team')}
+              className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'team'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Team Tasks
+            </button>
+            <button
+              onClick={() => setActiveTab('personal')}
+              className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'personal'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <User className="w-4 h-4 mr-2" />
+              My Tasks
+            </button>
+          </div>
+        </CardHeader>
         
-        {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-slate-100 rounded-lg p-1 mt-4">
-          <button
-            onClick={() => setActiveTab('team')}
-            className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-              activeTab === 'team'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Users className="w-4 h-4 mr-2" />
-            Team Tasks
-          </button>
-          <button
-            onClick={() => setActiveTab('personal')}
-            className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-              activeTab === 'personal'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <User className="w-4 h-4 mr-2" />
-            My Tasks
-          </button>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-        {activeTab === 'team' && renderTaskList(teamTasks)}
-        {activeTab === 'personal' && renderTaskList(personalTasks, true)}
-      </CardContent>
-    </Card>
+        <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+          {activeTab === 'team' && renderTaskList(teamTasks)}
+          {activeTab === 'personal' && renderTaskList(personalTasks, true)}
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };
 
