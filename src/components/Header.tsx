@@ -57,7 +57,7 @@ const Header = () => {
             ))}
           </nav>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3 ml-auto">
             <div className="hidden sm:block text-right">
               <p className="text-xs text-slate-500">Welcome back</p>
               <p className="text-sm font-semibold text-slate-900">{displayName}</p>
