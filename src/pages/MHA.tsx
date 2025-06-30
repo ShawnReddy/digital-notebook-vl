@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Filter, Building, Phone, Mail, MapPin, DollarSign } from 'lucide-react';
+import { Search, Filter, Building, Phone, Mail, MapPin, Target, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,9 +13,9 @@ interface MHAAccount {
   email: string;
   phone: string;
   location: string;
-  contractValue: string;
-  renewalDate: string;
-  status: 'active' | 'pending-renewal' | 'at-risk';
+  potentialValue: string;
+  lastContact: string;
+  status: 'hot-lead' | 'warm-lead' | 'cold-lead';
   selected: boolean;
 }
 
@@ -29,9 +29,9 @@ const MHA = () => {
       email: 's.martinez@metrohealth.org',
       phone: '+1 (555) 234-5678',
       location: 'Los Angeles, CA',
-      contractValue: '$450K',
-      renewalDate: '2025-03-15',
-      status: 'active',
+      potentialValue: '$450K',
+      lastContact: '2024-12-15',
+      status: 'hot-lead',
       selected: false
     },
     {
@@ -41,9 +41,9 @@ const MHA = () => {
       email: 'm.thompson@regionalmed.com',
       phone: '+1 (555) 345-6789',
       location: 'Dallas, TX',
-      contractValue: '$320K',
-      renewalDate: '2025-01-30',
-      status: 'pending-renewal',
+      potentialValue: '$320K',
+      lastContact: '2024-12-10',
+      status: 'warm-lead',
       selected: false
     },
     {
@@ -53,9 +53,9 @@ const MHA = () => {
       email: 'l.wang@communityhealth.org',
       phone: '+1 (555) 456-7890',
       location: 'Atlanta, GA',
-      contractValue: '$280K',
-      renewalDate: '2024-12-20',
-      status: 'at-risk',
+      potentialValue: '$280K',
+      lastContact: '2024-11-28',
+      status: 'cold-lead',
       selected: false
     },
     {
@@ -65,9 +65,9 @@ const MHA = () => {
       email: 'r.johnson@integratedcare.com',
       phone: '+1 (555) 567-8901',
       location: 'Phoenix, AZ',
-      contractValue: '$520K',
-      renewalDate: '2025-06-10',
-      status: 'active',
+      potentialValue: '$520K',
+      lastContact: '2024-12-20',
+      status: 'hot-lead',
       selected: false
     }
   ]);
@@ -80,18 +80,18 @@ const MHA = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'pending-renewal': return 'bg-yellow-100 text-yellow-800';
-      case 'at-risk': return 'bg-red-100 text-red-800';
+      case 'hot-lead': return 'bg-red-100 text-red-800';
+      case 'warm-lead': return 'bg-yellow-100 text-yellow-800';
+      case 'cold-lead': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'active': return 'Active';
-      case 'pending-renewal': return 'Pending Renewal';
-      case 'at-risk': return 'At Risk';
+      case 'hot-lead': return 'Hot Lead';
+      case 'warm-lead': return 'Warm Lead';
+      case 'cold-lead': return 'Cold Lead';
       default: return status;
     }
   };
@@ -106,8 +106,8 @@ const MHA = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">MHA Accounts</h1>
-        <p className="text-gray-600">Manage Medical Health Alliance accounts and track contract renewals.</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Must Have Accounts (MHA)</h1>
+        <p className="text-gray-600">Priority accounts targeted for client conversion - track leads and conversion opportunities.</p>
       </div>
 
       {/* Search and Filters */}
@@ -115,7 +115,7 @@ const MHA = () => {
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
-            placeholder="Search MHA accounts..."
+            placeholder="Search priority accounts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -127,7 +127,7 @@ const MHA = () => {
         </Button>
         {selectedCount > 0 && (
           <Button className="bg-blue-600 hover:bg-blue-700">
-            Add {selectedCount} to Dashboard
+            Add {selectedCount} to Pipeline
           </Button>
         )}
       </div>
@@ -171,15 +171,15 @@ const MHA = () => {
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-gray-100">
                 <div>
-                  <p className="text-sm text-gray-500">Contract Value</p>
+                  <p className="text-sm text-gray-500">Potential Value</p>
                   <p className="font-semibold text-green-600 flex items-center">
-                    <DollarSign className="w-4 h-4 mr-1" />
-                    {account.contractValue}
+                    <Target className="w-4 h-4 mr-1" />
+                    {account.potentialValue}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">Renewal Date</p>
-                  <p className="text-sm font-medium">{new Date(account.renewalDate).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-500">Last Contact</p>
+                  <p className="text-sm font-medium">{new Date(account.lastContact).toLocaleDateString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -189,7 +189,7 @@ const MHA = () => {
 
       {filteredAccounts.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No MHA accounts found matching your search.</p>
+          <p className="text-gray-500">No priority accounts found matching your search.</p>
         </div>
       )}
     </div>
