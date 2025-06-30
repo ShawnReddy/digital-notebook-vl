@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, User, Plus, Edit, Check, AlertCircle, ArrowRight, Users, Building2 } from 'lucide-react';
+import { Calendar, Clock, User, Plus, Edit, Check, AlertCircle, ArrowRight, Users, Building2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import TaskModal from './TaskModal';
+import BriefModal from './BriefModal';
 
 interface Meeting {
   id: string;
@@ -26,6 +27,8 @@ interface Task {
 const Dashboard = () => {
   const { userProfile } = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
+  const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [tasks, setTasks] = useState<Task[]>([
     {
@@ -104,6 +107,11 @@ const Dashboard = () => {
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setIsTaskModalOpen(true);
+  };
+
+  const handleBriefClick = (meeting: Meeting) => {
+    setSelectedMeeting(meeting);
+    setIsBriefModalOpen(true);
   };
 
   const getPriorityColor = (priority: string) => {
@@ -239,9 +247,18 @@ const Dashboard = () => {
                           {meeting.time}
                         </div>
                       </div>
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 flex flex-col space-y-2">
                         <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
                           Join
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleBriefClick(meeting)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200 hover:from-emerald-100 hover:to-teal-100"
+                        >
+                          <FileText className="w-3 h-3 mr-1" />
+                          Brief
                         </Button>
                       </div>
                     </div>
@@ -436,6 +453,15 @@ const Dashboard = () => {
           }}
           onSave={handleTaskSave}
           task={editingTask}
+        />
+
+        <BriefModal
+          isOpen={isBriefModalOpen}
+          onClose={() => {
+            setIsBriefModalOpen(false);
+            setSelectedMeeting(null);
+          }}
+          meeting={selectedMeeting}
         />
       </div>
     </div>
