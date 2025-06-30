@@ -24,13 +24,20 @@ interface TaskModalProps {
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    assignee: string;
+    dueDate: string;
+    priority: 'high' | 'medium' | 'low';
+    status: 'pending' | 'completed';
+    category: 'today' | 'week' | 'overdue';
+  }>({
     title: '',
     assignee: '',
     dueDate: '',
-    priority: 'medium' as const,
-    status: 'pending' as const,
-    category: 'today' as const
+    priority: 'medium',
+    status: 'pending',
+    category: 'today'
   });
 
   const teamMembers = [
