@@ -219,10 +219,7 @@ const InactiveClients = () => {
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     checked={client.selected}
-                    onCheckedChange={(e) => {
-                      e.stopPropagation();
-                      handleClientSelect(client.id);
-                    }}
+                    onCheckedChange={() => handleClientSelect(client.id)}
                     onClick={(e) => e.stopPropagation()}
                   />
                   <div>

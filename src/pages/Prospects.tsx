@@ -207,10 +207,7 @@ const Prospects = () => {
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     checked={prospect.selected}
-                    onCheckedChange={(e) => {
-                      e.stopPropagation();
-                      handleProspectSelect(prospect.id);
-                    }}
+                    onCheckedChange={() => handleProspectSelect(prospect.id)}
                     onClick={(e) => e.stopPropagation()}
                   />
                   <div>
