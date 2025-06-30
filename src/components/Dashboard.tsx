@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Calendar, Clock, User, Plus, Edit, Check, AlertCircle, ArrowRight, Users, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -138,7 +139,10 @@ const Dashboard = () => {
         {/* Header Section */}
         <div className="mb-10">
           <div className="flex items-center justify-between">
-            <div></div>
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900 mb-3">Good morning, Sales Executive</h1>
+              <p className="text-lg text-slate-600">Here's what's happening today - stay on top of your goals.</p>
+            </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm text-slate-500">Today</p>
