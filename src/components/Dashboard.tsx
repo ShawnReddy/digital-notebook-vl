@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import TaskModal from './TaskModal';
 import BriefModal from './BriefModal';
+import PersonalTaskModal from './PersonalTaskModal';
 import StatsOverview from './StatsOverview';
 import TodaysSchedule from './TodaysSchedule';
-import TaskSection from './TaskSection';
+import TaskManagementPane from './TaskManagementPane';
 
 interface Meeting {
   id: string;
@@ -25,12 +26,23 @@ interface Task {
   category: 'today' | 'week' | 'overdue';
 }
 
+interface PersonalTask {
+  id: string;
+  title: string;
+  dueDate: string;
+  dueTime: string;
+  priority: 'high' | 'medium' | 'low';
+  status: 'pending' | 'completed';
+}
+
 const Dashboard = () => {
   const { userProfile } = useAuth();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isPersonalTaskModalOpen, setIsPersonalTaskModalOpen] = useState(false);
   const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingPersonalTask, setEditingPersonalTask] = useState<PersonalTask | null>(null);
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: '1',
@@ -60,6 +72,8 @@ const Dashboard = () => {
       category: 'overdue'
     }
   ]);
+
+  const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>([]);
 
   const meetings: Meeting[] = [
     {
@@ -99,6 +113,20 @@ const Dashboard = () => {
     setEditingTask(null);
   };
 
+  const handlePersonalTaskSave = (taskData: Omit<PersonalTask, 'id'>) => {
+    if (editingPersonalTask) {
+      setPersonalTasks(personalTasks.map(t => t.id === editingPersonalTask.id ? { ...taskData, id: editingPersonalTask.id } : t));
+    } else {
+      const newTask: PersonalTask = {
+        ...taskData,
+        id: Date.now().toString()
+      };
+      setPersonalTasks([...personalTasks, newTask]);
+    }
+    setIsPersonalTaskModalOpen(false);
+    setEditingPersonalTask(null);
+  };
+
   const handleTaskComplete = (taskId: string) => {
     setTasks(tasks.map(t => 
       t.id === taskId ? { ...t, status: 'completed' as const } : t
@@ -129,7 +157,7 @@ const Dashboard = () => {
         <div className="mb-10">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-3">Good morning, {firstName}</h1>
+              <h1 className="text-3xl font-bold text-slate-900 mb-3">Hello, {firstName}</h1>
               <p className="text-lg text-slate-600">Here's what's happening today - stay on top of your goals.</p>
             </div>
             <div className="flex items-center space-x-4">
@@ -157,14 +185,9 @@ const Dashboard = () => {
             <TodaysSchedule meetings={meetings} onBriefClick={handleBriefClick} />
           </div>
 
-          {/* Tasks Section */}
+          {/* Task Management Pane */}
           <div className="xl:col-span-7">
-            <TaskSection
-              tasks={tasks}
-              onAddTask={() => setIsTaskModalOpen(true)}
-              onCompleteTask={handleTaskComplete}
-              onEditTask={handleEditTask}
-            />
+            <TaskManagementPane onAddPersonalTask={() => setIsPersonalTaskModalOpen(true)} />
           </div>
         </div>
 
@@ -176,6 +199,16 @@ const Dashboard = () => {
           }}
           onSave={handleTaskSave}
           task={editingTask}
+        />
+
+        <PersonalTaskModal
+          isOpen={isPersonalTaskModalOpen}
+          onClose={() => {
+            setIsPersonalTaskModalOpen(false);
+            setEditingPersonalTask(null);
+          }}
+          onSave={handlePersonalTaskSave}
+          task={editingPersonalTask}
         />
 
         <BriefModal
