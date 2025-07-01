@@ -231,7 +231,7 @@ const TagSection: React.FC<TagSectionProps> = ({
           className="h-10"
         >
           <Building className="w-4 h-4 mr-1" />
-          Company
+          Account
         </Button>
         <Button
           type="button"
@@ -240,7 +240,7 @@ const TagSection: React.FC<TagSectionProps> = ({
           className="h-10"
         >
           <User className="w-4 h-4 mr-1" />
-          Person
+          Contact
         </Button>
         <Button
           type="button"
@@ -248,7 +248,7 @@ const TagSection: React.FC<TagSectionProps> = ({
           onClick={() => onTagTypeChange('personal')}
           className="h-10"
         >
-          Personal
+          Others
         </Button>
       </div>
 
