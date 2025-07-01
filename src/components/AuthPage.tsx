@@ -39,7 +39,7 @@ const AuthPage = () => {
             </div>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-            SalesTracker
+            Digibook
           </h1>
           <p className="text-slate-600 mt-2">Welcome back! Please sign in to continue.</p>
         </div>
