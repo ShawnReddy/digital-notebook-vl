@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import TaskModal from '@/components/TaskModal';
-import { useTaskManagement } from '@/hooks/useTaskManagement';
+import { useTaskContext } from '@/hooks/useTaskContext';
 import { type Task } from '@/data/taskData';
 
 interface Contact {
@@ -54,7 +54,7 @@ interface Meeting {
 }
 
 const Clients = () => {
-  const { handleTaskSave: saveTaskToManager } = useTaskManagement();
+  const { handleTaskSave: saveTaskToManager } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -286,7 +286,7 @@ Our analysis shows they are an ideal client for our services with high potential
   };
 
   const handleTaskSave = (taskData: Omit<Task, 'id'>) => {
-    // Save to the main task management system
+    // Save to the global task management system
     saveTaskToManager(taskData);
     setIsTaskModalOpen(false);
     setTaskPreset(null);

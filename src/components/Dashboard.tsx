@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useTaskManagement } from '@/hooks/useTaskManagement';
+import { useTaskContext } from '@/contexts/TaskContext';
 import { getMyPendingTasks } from '@/utils/taskFilters';
 import DashboardHeader from './DashboardHeader';
 import DashboardModals from './DashboardModals';
@@ -25,7 +25,7 @@ const Dashboard = () => {
     handleTaskSave,
     handlePersonalTaskSave,
     handleTaskComplete
-  } = useTaskManagement();
+  } = useTaskContext();
 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isPersonalTaskModalOpen, setIsPersonalTaskModalOpen] = useState(false);
