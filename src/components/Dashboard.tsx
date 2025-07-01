@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { getMyPendingTasks } from '@/utils/taskFilters';
 import DashboardHeader from './DashboardHeader';
@@ -35,6 +34,11 @@ const Dashboard = () => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingPersonalTask, setEditingPersonalTask] = useState<PersonalTask | null>(null);
   const [taskModalPreset, setTaskModalPreset] = useState<{ company: string; person: string } | null>(null);
+
+  // Set document title
+  useEffect(() => {
+    document.title = 'Digital Notebook';
+  }, []);
 
   const meetings: Meeting[] = [
     {
