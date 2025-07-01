@@ -34,19 +34,20 @@ const Dashboard = () => {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>(mockPersonalTasks);
 
-  // Helper function to check if a task belongs to Shawn
+  // Helper function to check if a task belongs to the current user (Shawn)
   const isMyTask = (task: Task): boolean => {
     const currentUserName = userProfile?.full_name || 'Shawn';
     
-    // Check if assigned to me
+    // Check if assigned to me by exact name match
     if (task.assignee === currentUserName) return true;
+    if (task.assignee === 'Shawn') return true;
     
     // Check if tagged to me (person tag with my name)
     if (task.tag.type === 'person' && task.tag.name === currentUserName) return true;
-    
-    // For Shawn's account, also check if assigned to "Shawn"
-    if (task.assignee === 'Shawn') return true;
     if (task.tag.type === 'person' && task.tag.name === 'Shawn') return true;
+    
+    // Check if tagged to me (company tag and I'm the assignee)
+    if (task.tag.type === 'company' && (task.assignee === currentUserName || task.assignee === 'Shawn')) return true;
     
     return false;
   };
@@ -76,10 +77,13 @@ const Dashboard = () => {
   ];
 
   const handleTaskSave = (taskData: Omit<Task, 'id'>) => {
+    console.log('Saving task:', taskData);
+    
     if (editingTask) {
       // Update existing task
       const updatedTasks = tasks.map(t => t.id === editingTask.id ? { ...taskData, id: editingTask.id } : t);
       setTasks(updatedTasks);
+      console.log('Updated tasks:', updatedTasks);
       toast({
         title: "Task Updated",
         description: `Task "${taskData.title}" has been updated successfully.`,
@@ -92,6 +96,8 @@ const Dashboard = () => {
       };
       const updatedTasks = [...tasks, newTask];
       setTasks(updatedTasks);
+      console.log('New task created:', newTask);
+      console.log('All tasks after creation:', updatedTasks);
       toast({
         title: "Task Created",
         description: `Task "${taskData.title}" has been created and assigned to ${taskData.assignee}.`,
@@ -173,11 +179,26 @@ const Dashboard = () => {
   const yesterdayStr = yesterday.toISOString().split('T')[0];
 
   // Filter for MY pending tasks that are due today, overdue, or due tomorrow
-  const myPendingTasks = tasks.filter(task => 
-    isMyTask(task) && 
-    task.status === 'pending' &&
-    (task.dueDate === todayStr || task.dueDate === tomorrowStr || task.dueDate <= yesterdayStr)
-  );
+  const myPendingTasks = tasks.filter(task => {
+    const isMyTaskResult = isMyTask(task);
+    const isPending = task.status === 'pending';
+    const isDueRelevant = task.dueDate === todayStr || task.dueDate === tomorrowStr || task.dueDate <= yesterdayStr;
+    
+    console.log('Task filtering:', {
+      taskId: task.id,
+      title: task.title,
+      assignee: task.assignee,
+      tag: task.tag,
+      isMyTaskResult,
+      isPending,
+      isDueRelevant,
+      dueDate: task.dueDate
+    });
+    
+    return isMyTaskResult && isPending && isDueRelevant;
+  });
+
+  console.log('My pending tasks:', myPendingTasks);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
