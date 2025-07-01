@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,13 +24,21 @@ interface TaskManagementPaneProps {
 const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTask }) => {
   const [activeTab, setActiveTab] = useState<'team' | 'personal'>('team');
 
+  // Get today and tomorrow dates
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const todayStr = today.toISOString().split('T')[0];
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
   // Mock data - these would come from Compass CRM
   const teamTasks: Task[] = [
     {
       id: '1',
       title: 'Review Q4 sales pipeline with marketing team',
       assignee: 'Sarah Johnson',
-      dueDate: '2024-12-30',
+      dueDate: todayStr,
       dueTime: '10:00 AM',
       priority: 'high',
       status: 'pending',
@@ -39,7 +48,7 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
       id: '2',
       title: 'Complete client onboarding documentation',
       assignee: 'Mike Davis',
-      dueDate: '2024-12-31',
+      dueDate: todayStr,
       dueTime: '2:30 PM',
       priority: 'medium',
       status: 'pending',
@@ -49,9 +58,19 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
       id: '3',
       title: 'Prepare demo materials for prospect meeting',
       assignee: 'Emily Chen',
-      dueDate: '2025-01-02',
+      dueDate: tomorrowStr,
       dueTime: '9:15 AM',
       priority: 'high',
+      status: 'pending',
+      source: 'compass'
+    },
+    {
+      id: '4',
+      title: 'Follow up with quarterly revenue reports',
+      assignee: 'David Wilson',
+      dueDate: tomorrowStr,
+      dueTime: '3:00 PM',
+      priority: 'medium',
       status: 'pending',
       source: 'compass'
     }
@@ -59,22 +78,32 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
 
   const personalTasks: Task[] = [
     {
-      id: '4',
+      id: '5',
       title: 'Follow up with ABC Corp proposal',
       assignee: 'Shawn',
-      dueDate: '2024-12-30',
+      dueDate: todayStr,
       dueTime: '3:00 PM',
       priority: 'high',
       status: 'pending',
       source: 'compass'
     },
     {
-      id: '5',
+      id: '6',
       title: 'Review contract terms with legal team',
       assignee: 'Shawn',
-      dueDate: '2024-12-31',
+      dueDate: tomorrowStr,
       dueTime: '11:30 AM',
       priority: 'medium',
+      status: 'pending',
+      source: 'manual'
+    },
+    {
+      id: '7',
+      title: 'Prepare presentation for board meeting',
+      assignee: 'Shawn',
+      dueDate: tomorrowStr,
+      dueTime: '1:00 PM',
+      priority: 'high',
       status: 'pending',
       source: 'manual'
     }
@@ -108,21 +137,12 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const renderTaskList = (tasks: Task[], showAddButton = false) => (
+  const filterTasksByDate = (tasks: Task[], targetDate: string) => {
+    return tasks.filter(task => task.dueDate === targetDate);
+  };
+
+  const renderTaskList = (tasks: Task[]) => (
     <div className="space-y-3">
-      {showAddButton && (
-        <div className="flex justify-end mb-4">
-          <Button 
-            onClick={onAddPersonalTask}
-            variant="outline"
-            size="sm"
-            className="border-dashed border-2 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-sm"
-          >
-            <Plus className="w-3 h-3 mr-1" strokeWidth={2.5} />
-            Add Task
-          </Button>
-        </div>
-      )}
       {tasks.map((task) => (
         <div key={task.id} className="group relative bg-white border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:shadow-blue-100/50 transition-all duration-300 hover:border-blue-200 hover:-translate-y-0.5">
           {/* Priority indicator line */}
@@ -173,6 +193,36 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
       ))}
     </div>
   );
+
+  const renderTaskSection = (title: string, tasks: Task[], showAddButton = false) => (
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+        {showAddButton && (
+          <Button 
+            onClick={onAddPersonalTask}
+            variant="outline"
+            size="sm"
+            className="border-dashed border-2 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-sm"
+          >
+            <Plus className="w-3 h-3 mr-1" strokeWidth={2.5} />
+            Add Task
+          </Button>
+        )}
+      </div>
+      {tasks.length > 0 ? (
+        renderTaskList(tasks)
+      ) : (
+        <div className="text-center py-8 text-slate-500">
+          <p>No tasks scheduled for this day</p>
+        </div>
+      )}
+    </div>
+  );
+
+  const currentTasks = activeTab === 'team' ? teamTasks : personalTasks;
+  const todayTasks = filterTasksByDate(currentTasks, todayStr);
+  const tomorrowTasks = filterTasksByDate(currentTasks, tomorrowStr);
 
   return (
     <TooltipProvider>
@@ -234,9 +284,9 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-4 max-h-96 overflow-y-auto px-6 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-          {activeTab === 'team' && renderTaskList(teamTasks)}
-          {activeTab === 'personal' && renderTaskList(personalTasks, true)}
+        <CardContent className="space-y-6 max-h-96 overflow-y-auto px-6 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+          {renderTaskSection('Due Today', todayTasks, activeTab === 'personal')}
+          {renderTaskSection('Due Tomorrow', tomorrowTasks)}
         </CardContent>
       </Card>
     </TooltipProvider>

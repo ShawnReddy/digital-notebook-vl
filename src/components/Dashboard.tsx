@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import TaskModal from './TaskModal';
@@ -176,7 +175,6 @@ const Dashboard = () => {
         <StatsOverview
           meetingsCount={meetings.length}
           pendingTasksCount={tasks.filter(t => t.status === 'pending').length}
-          activeClientsCount={24}
         />
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">

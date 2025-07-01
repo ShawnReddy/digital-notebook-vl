@@ -34,7 +34,7 @@ const Header = () => {
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                SalesTracker
+                Digibook
               </h1>
             </div>
           </div>
