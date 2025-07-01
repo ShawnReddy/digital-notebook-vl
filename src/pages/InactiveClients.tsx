@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import TaskModal from '@/components/TaskModal';
+import { useTaskContext } from '@/contexts/TaskContext';
+import { type Task } from '@/data/taskData';
 
 interface Contact {
   id: string;
@@ -51,6 +53,7 @@ interface Meeting {
 }
 
 const InactiveClients = () => {
+  const { handleTaskSave } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -209,7 +212,8 @@ const InactiveClients = () => {
     setIsTaskModalOpen(true);
   };
 
-  const handleTaskSave = (taskData: any) => {
+  const onTaskSave = (taskData: Omit<Task, 'id'>) => {
+    handleTaskSave(taskData);
     toast({
       title: "Task Created",
       description: `Task has been created and assigned to ${taskData.assignee}`,
@@ -504,7 +508,7 @@ const InactiveClients = () => {
           setIsTaskModalOpen(false);
           setTaskPreset(null);
         }}
-        onSave={handleTaskSave}
+        onSave={onTaskSave}
         task={null}
         preset={taskPreset}
       />

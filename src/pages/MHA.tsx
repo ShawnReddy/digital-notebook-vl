@@ -8,6 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import TaskModal from '@/components/TaskModal';
+import { useTaskContext } from '@/contexts/TaskContext';
+import { type Task } from '@/data/taskData';
 
 interface Contact {
   id: string;
@@ -51,6 +53,7 @@ interface Meeting {
 }
 
 const MHA = () => {
+  const { handleTaskSave } = useTaskContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<MHAAccount | null>(null);
@@ -304,7 +307,8 @@ Competitive landscape analysis shows we have a significant advantage due to our 
     setIsTaskModalOpen(true);
   };
 
-  const handleTaskSave = (taskData: any) => {
+  const onTaskSave = (taskData: Omit<Task, 'id'>) => {
+    handleTaskSave(taskData);
     toast({
       title: "Task Created",
       description: `Task has been created and assigned to ${taskData.assignee}`,
@@ -570,7 +574,7 @@ Competitive landscape analysis shows we have a significant advantage due to our 
           setIsTaskModalOpen(false);
           setTaskPreset(null);
         }}
-        onSave={handleTaskSave}
+        onSave={onTaskSave}
         task={null}
         preset={taskPreset}
       />

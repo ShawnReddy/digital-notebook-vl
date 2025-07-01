@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -17,7 +16,7 @@ interface TagSectionProps {
   onTagNameChange: (name: string) => void;
 }
 
-// Mock data for companies categorized by client type
+// Unified company and people data that matches across all pages
 const companiesByType = {
   clients: [
     'ABC Corporation',
@@ -26,25 +25,28 @@ const companiesByType = {
     'Innovative Solutions Inc'
   ],
   prospects: [
-    'Future Corp',
-    'NextGen Industries',
-    'Prospect Technologies',
-    'Emerging Solutions'
+    'Future Tech Inc.',
+    'NextGen Solutions',
+    'Digital Dynamics',
+    'Startup Ventures'
   ],
   inactive: [
-    'Legacy Systems Inc',
-    'Old School Corp',
-    'Dormant Enterprises'
+    'Acme Corp',
+    'Beta Industries',
+    'Gamma Solutions',
+    'Delta Corp'
   ],
   mha: [
-    'MHA Partners',
-    'Healthcare Associates',
-    'Medical Group LLC'
+    'Metro Health Alliance',
+    'Regional Medical Group',
+    'Community Healthcare Network',
+    'Integrated Care Systems'
   ]
 };
 
-// Mock data for people by company
+// Updated people data to match the contacts from all pages
 const peopleByCompany: Record<string, Array<{ name: string; title?: string }>> = {
+  // Clients
   'ABC Corporation': [
     { name: 'Jennifer Martinez', title: 'CEO' },
     { name: 'David Wilson', title: 'CTO' }
@@ -61,22 +63,53 @@ const peopleByCompany: Record<string, Array<{ name: string; title?: string }>> =
     { name: 'Sarah Williams', title: 'Business Development' },
     { name: 'James Johnson', title: 'Technical Lead' }
   ],
-  'Future Corp': [
-    { name: 'Alex Turner', title: 'Founder' },
-    { name: 'Maria Garcia', title: 'Head of Product' }
+  
+  // Prospects
+  'Future Tech Inc.': [
+    { name: 'Lisa Thompson', title: 'VP of Technology' },
+    { name: 'David Kim', title: 'CTO' }
   ],
-  'NextGen Industries': [
-    { name: 'Kevin Brown', title: 'VP Engineering' }
+  'NextGen Solutions': [
+    { name: 'Robert Kim', title: 'CEO' }
   ],
-  'Prospect Technologies': [
-    { name: 'Rachel Davis', title: 'CEO' }
+  'Digital Dynamics': [
+    { name: 'Amanda Foster', title: 'Operations Director' },
+    { name: 'Mark Stevens', title: 'Business Development' }
   ],
-  'Legacy Systems Inc': [
-    { name: 'Thomas Miller', title: 'Legacy Manager' }
+  'Startup Ventures': [
+    { name: 'James Wilson', title: 'Founder' }
   ],
-  'MHA Partners': [
-    { name: 'Dr. Patricia Jones', title: 'Medical Director' },
-    { name: 'Dr. Mark Thompson', title: 'Specialist' }
+  
+  // Inactive Clients
+  'Acme Corp': [
+    { name: 'John Doe', title: 'CEO' },
+    { name: 'Jane Smith', title: 'CFO' }
+  ],
+  'Beta Industries': [
+    { name: 'Alice Johnson', title: 'CTO' }
+  ],
+  'Gamma Solutions': [
+    { name: 'Bob Williams', title: 'Project Manager' },
+    { name: 'Charlie Brown', title: 'Consultant' }
+  ],
+  'Delta Corp': [
+    { name: 'Eve Davis', title: 'Finance Director' }
+  ],
+  
+  // MHA
+  'Metro Health Alliance': [
+    { name: 'Dr. Sandra Martinez', title: 'Chief Medical Officer' },
+    { name: 'Robert Chen', title: 'Director of Operations' }
+  ],
+  'Regional Medical Group': [
+    { name: 'Dr. Michael Thompson', title: 'Regional Director' }
+  ],
+  'Community Healthcare Network': [
+    { name: 'Dr. Lisa Wang', title: 'Network Administrator' },
+    { name: 'Jennifer Adams', title: 'Compliance Officer' }
+  ],
+  'Integrated Care Systems': [
+    { name: 'Dr. Robert Johnson', title: 'Chief Executive Officer' }
   ]
 };
 
@@ -92,9 +125,20 @@ const TagSection: React.FC<TagSectionProps> = ({
   const [availableCompanies, setAvailableCompanies] = useState<string[]>([]);
   const [availablePeople, setAvailablePeople] = useState<Array<{ name: string; title?: string }>>([]);
 
-  // Initialize state based on current tag
+  // Initialize state based on current tag or preset
   useEffect(() => {
-    if (tag.type === 'company' && tag.name) {
+    if (preset) {
+      // Find the company in our data structure
+      for (const [clientType, companies] of Object.entries(companiesByType)) {
+        if (companies.includes(preset.company)) {
+          setSelectedClientType(clientType);
+          setAvailableCompanies(companies);
+          setSelectedCompany(preset.company);
+          setAvailablePeople(peopleByCompany[preset.company] || []);
+          break;
+        }
+      }
+    } else if (tag.type === 'company' && tag.name) {
       // Find which client type this company belongs to
       for (const [clientType, companies] of Object.entries(companiesByType)) {
         if (companies.includes(tag.name)) {
@@ -116,7 +160,7 @@ const TagSection: React.FC<TagSectionProps> = ({
         }
       }
     }
-  }, [tag]);
+  }, [tag, preset]);
 
   // Reset selections when tag type changes
   useEffect(() => {

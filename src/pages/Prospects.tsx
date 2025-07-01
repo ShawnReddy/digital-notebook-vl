@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import TaskModal from '@/components/TaskModal';
+import { useTaskContext } from '@/contexts/TaskContext';
+import { type Task } from '@/data/taskData';
 
 interface Contact {
   id: string;
@@ -52,6 +54,8 @@ interface Meeting {
 }
 
 const Prospects = () => {
+  const { handleTaskSave } = useTaskContext();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -275,7 +279,8 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
     setIsTaskModalOpen(true);
   };
 
-  const handleTaskSave = (taskData: any) => {
+  const onTaskSave = (taskData: Omit<Task, 'id'>) => {
+    handleTaskSave(taskData);
     toast({
       title: "Task Created",
       description: `Task has been created and assigned to ${taskData.assignee}`,
@@ -597,7 +602,7 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
           setIsTaskModalOpen(false);
           setTaskPreset(null);
         }}
-        onSave={handleTaskSave}
+        onSave={onTaskSave}
         task={null}
         preset={taskPreset}
       />
