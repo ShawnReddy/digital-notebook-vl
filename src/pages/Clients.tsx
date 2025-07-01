@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Search, Filter, Star, Phone, Mail, MapPin } from 'lucide-react';
+import { Search, Filter, Star, Phone, Mail, MapPin, Users, MessageSquare, PhoneCall, Calendar, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,27 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import BriefModal from '@/components/BriefModal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+
+interface Contact {
+  id: string;
+  name: string;
+  title: string;
+  email: string;
+  phone: string;
+  lastContact: string;
+}
+
+interface InteractionHistory {
+  id: string;
+  type: 'email' | 'call' | 'meeting' | 'note';
+  date: string;
+  time: string;
+  subject: string;
+  content: string;
+  contact: string;
+}
 
 interface Client {
   id: string;
@@ -19,6 +41,7 @@ interface Client {
   status: 'active' | 'at-risk' | 'growing';
   lastContact: string;
   selected: boolean;
+  contacts: Contact[];
 }
 
 interface Meeting {
@@ -35,6 +58,10 @@ const Clients = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
   const [selectedClientForBrief, setSelectedClientForBrief] = useState<Meeting | null>(null);
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<Client | null>(null);
+  const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const { toast } = useToast();
   
   const [clients, setClients] = useState<Client[]>([
@@ -48,7 +75,25 @@ const Clients = () => {
       revenue: '$250K',
       status: 'active',
       lastContact: '2024-12-28',
-      selected: false
+      selected: false,
+      contacts: [
+        {
+          id: '1a',
+          name: 'John Anderson',
+          title: 'CEO',
+          email: 'j.anderson@abc-corp.com',
+          phone: '+1 (555) 123-4567',
+          lastContact: '2024-12-28'
+        },
+        {
+          id: '1b',
+          name: 'Sarah Johnson',
+          title: 'CFO',
+          email: 's.johnson@abc-corp.com',
+          phone: '+1 (555) 123-4568',
+          lastContact: '2024-12-25'
+        }
+      ]
     },
     {
       id: '2',
@@ -60,7 +105,25 @@ const Clients = () => {
       revenue: '$180K',
       status: 'growing',
       lastContact: '2024-12-27',
-      selected: false
+      selected: false,
+      contacts: [
+        {
+          id: '2a',
+          name: 'Sarah Mitchell',
+          title: 'Founder & CTO',
+          email: 's.mitchell@techstart.com',
+          phone: '+1 (555) 987-6543',
+          lastContact: '2024-12-27'
+        },
+        {
+          id: '2b',
+          name: 'Mike Chen',
+          title: 'VP of Engineering',
+          email: 'm.chen@techstart.com',
+          phone: '+1 (555) 987-6544',
+          lastContact: '2024-12-20'
+        }
+      ]
     },
     {
       id: '3',
@@ -72,7 +135,17 @@ const Clients = () => {
       revenue: '$420K',
       status: 'at-risk',
       lastContact: '2024-12-20',
-      selected: false
+      selected: false,
+      contacts: [
+        {
+          id: '3a',
+          name: 'Michael Chen',
+          title: 'Director of Operations',
+          email: 'm.chen@global-ind.com',
+          phone: '+1 (555) 456-7890',
+          lastContact: '2024-12-20'
+        }
+      ]
     },
     {
       id: '4',
@@ -84,9 +157,70 @@ const Clients = () => {
       revenue: '$320K',
       status: 'active',
       lastContact: '2024-12-29',
-      selected: false
+      selected: false,
+      contacts: [
+        {
+          id: '4a',
+          name: 'Emily Rodriguez',
+          title: 'Research Director',
+          email: 'e.rodriguez@innolabs.com',
+          phone: '+1 (555) 321-0987',
+          lastContact: '2024-12-29'
+        },
+        {
+          id: '4b',
+          name: 'James Wilson',
+          title: 'Lab Manager',
+          email: 'j.wilson@innolabs.com',
+          phone: '+1 (555) 321-0988',
+          lastContact: '2024-12-26'
+        }
+      ]
     }
   ]);
+
+  // Mock interaction history data - Note: In production, this would come from Compass
+  const getInteractionHistory = (contactId: string): InteractionHistory[] => {
+    const mockHistory: InteractionHistory[] = [
+      {
+        id: '1',
+        type: 'email',
+        date: '2024-12-28',
+        time: '10:30 AM',
+        subject: 'Q4 Contract Renewal Discussion',
+        content: 'Discussed renewal terms and pricing for Q1 2025. Client is interested in expanding scope.',
+        contact: 'John Anderson'
+      },
+      {
+        id: '2',
+        type: 'call',
+        date: '2024-12-25',
+        time: '2:15 PM',
+        subject: 'Follow-up on Implementation',
+        content: 'Called to check on system implementation progress. Minor technical issues resolved.',
+        contact: 'John Anderson'
+      },
+      {
+        id: '3',
+        type: 'meeting',
+        date: '2024-12-22',
+        time: '11:00 AM',
+        subject: 'Quarterly Business Review',
+        content: 'Reviewed performance metrics and discussed future roadmap. Very positive feedback.',
+        contact: 'John Anderson'
+      },
+      {
+        id: '4',
+        type: 'note',
+        date: '2024-12-20',
+        time: '3:45 PM',
+        subject: 'Internal Note',
+        content: 'Client mentioned potential budget increase for next quarter. Good opportunity for upsell.',
+        contact: 'Internal'
+      }
+    ];
+    return mockHistory;
+  };
 
   const handleClientSelect = (clientId: string) => {
     setClients(clients.map(client => 
@@ -101,22 +235,33 @@ const Clients = () => {
         title: "Added to Dashboard",
         description: `${selectedClients.length} client${selectedClients.length > 1 ? 's' : ''} added to your dashboard.`,
       });
-      // Clear selections after adding
       setClients(clients.map(client => ({ ...client, selected: false })));
     }
   };
 
   const handleClientClick = (client: Client) => {
-    // Convert client data to meeting format for the brief modal
-    const meetingData: Meeting = {
-      id: client.id,
-      title: `Client Brief - ${client.name}`,
-      client: client.company,
-      time: 'Current',
-      type: 'meeting'
-    };
-    setSelectedClientForBrief(meetingData);
-    setIsBriefModalOpen(true);
+    setSelectedCompany(client);
+    setIsCompanyModalOpen(true);
+  };
+
+  const handleContactClick = (contact: Contact) => {
+    setSelectedContact(contact);
+    setIsInteractionModalOpen(true);
+  };
+
+  const handleDeepResearch = () => {
+    if (selectedCompany) {
+      const meetingData: Meeting = {
+        id: selectedCompany.id,
+        title: `Client Brief - ${selectedCompany.company}`,
+        client: selectedCompany.company,
+        time: 'Current',
+        type: 'meeting'
+      };
+      setSelectedClientForBrief(meetingData);
+      setIsBriefModalOpen(true);
+      setIsCompanyModalOpen(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -128,9 +273,28 @@ const Clients = () => {
     }
   };
 
+  const getInteractionIcon = (type: string) => {
+    switch (type) {
+      case 'email': return <Mail className="w-4 h-4" />;
+      case 'call': return <PhoneCall className="w-4 h-4" />;
+      case 'meeting': return <Calendar className="w-4 h-4" />;
+      case 'note': return <FileText className="w-4 h-4" />;
+      default: return <MessageSquare className="w-4 h-4" />;
+    }
+  };
+
+  const getInteractionColor = (type: string) => {
+    switch (type) {
+      case 'email': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'call': return 'bg-green-50 text-green-700 border-green-200';
+      case 'meeting': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'note': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
   const filteredClients = clients.filter(client => {
-    const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = client.company.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -211,8 +375,11 @@ const Clients = () => {
                     onClick={(e) => e.stopPropagation()}
                   />
                   <div>
-                    <CardTitle className="text-lg">{client.name}</CardTitle>
-                    <p className="text-sm text-gray-600">{client.company}</p>
+                    <CardTitle className="text-lg font-bold">{client.company}</CardTitle>
+                    <p className="text-sm text-gray-600 flex items-center">
+                      <Users className="w-3 h-3 mr-1" />
+                      {client.contacts.length} contact{client.contacts.length !== 1 ? 's' : ''}
+                    </p>
                   </div>
                 </div>
                 <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(client.status)}`}>
@@ -221,14 +388,6 @@ const Clients = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center text-sm text-gray-600">
-                <Mail className="w-4 h-4 mr-2" />
-                {client.email}
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Phone className="w-4 h-4 mr-2" />
-                {client.phone}
-              </div>
               <div className="flex items-center text-sm text-gray-600">
                 <MapPin className="w-4 h-4 mr-2" />
                 {client.location}
@@ -253,6 +412,111 @@ const Clients = () => {
           <p className="text-gray-500">No clients found matching your search.</p>
         </div>
       )}
+
+      {/* Company Details Modal */}
+      <Dialog open={isCompanyModalOpen} onOpenChange={setIsCompanyModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">{selectedCompany?.company}</DialogTitle>
+          </DialogHeader>
+          
+          {selectedCompany && (
+            <div className="space-y-6">
+              <Button onClick={handleDeepResearch} className="w-full bg-blue-600 hover:bg-blue-700">
+                Deep Research
+              </Button>
+              
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Company Contacts</h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  * Contact information displayed here would be populated from Compass based on user selection
+                </p>
+                <div className="space-y-3">
+                  {selectedCompany.contacts.map((contact) => (
+                    <Card 
+                      key={contact.id}
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => handleContactClick(contact)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold">{contact.name}</h4>
+                            <p className="text-sm text-gray-600">{contact.title}</p>
+                            <div className="flex items-center text-sm text-gray-500 mt-1">
+                              <Mail className="w-3 h-3 mr-1" />
+                              {contact.email}
+                            </div>
+                            <div className="flex items-center text-sm text-gray-500 mt-1">
+                              <Phone className="w-3 h-3 mr-1" />
+                              {contact.phone}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">Last Contact</p>
+                            <p className="text-sm font-medium">{new Date(contact.lastContact).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Interaction History Modal */}
+      <Dialog open={isInteractionModalOpen} onOpenChange={setIsInteractionModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">
+              Interaction History - {selectedContact?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedContact && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold">{selectedContact.name}</h4>
+                <p className="text-sm text-gray-600">{selectedContact.title}</p>
+                <div className="flex items-center text-sm text-gray-500 mt-1">
+                  <Mail className="w-3 h-3 mr-1" />
+                  {selectedContact.email}
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Recent Interactions</h3>
+                {getInteractionHistory(selectedContact.id).map((interaction) => (
+                  <Card key={interaction.id} className="border-l-4 border-l-blue-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <Badge className={`px-2 py-1 text-xs ${getInteractionColor(interaction.type)}`}>
+                            <div className="flex items-center space-x-1">
+                              {getInteractionIcon(interaction.type)}
+                              <span className="capitalize">{interaction.type}</span>
+                            </div>
+                          </Badge>
+                          <span className="text-sm font-medium">{interaction.subject}</span>
+                        </div>
+                        <div className="text-right text-sm text-gray-500">
+                          <p>{new Date(interaction.date).toLocaleDateString()}</p>
+                          <p>{interaction.time}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-700">{interaction.content}</p>
+                      <p className="text-xs text-gray-500 mt-2">Contact: {interaction.contact}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <BriefModal
         isOpen={isBriefModalOpen}
