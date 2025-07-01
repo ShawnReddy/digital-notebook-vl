@@ -1,12 +1,10 @@
-
 import React, { useState } from 'react';
-import { Search, Filter, Building, Phone, Mail, MapPin, Target, TrendingUp, Users, MessageSquare, PhoneCall, Calendar, FileText } from 'lucide-react';
+import { Search, Filter, Building, Phone, Mail, MapPin, Target, TrendingUp, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import BriefModal from '@/components/BriefModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 
@@ -53,12 +51,12 @@ interface Meeting {
 
 const MHA = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
-  const [selectedAccountForBrief, setSelectedAccountForBrief] = useState<Meeting | null>(null);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<MHAAccount | null>(null);
   const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [isResearching, setIsResearching] = useState(false);
+  const [researchData, setResearchData] = useState<string | null>(null);
   const { toast } = useToast();
   
   const [mhaAccounts, setMhaAccounts] = useState<MHAAccount[]>([
@@ -227,21 +225,6 @@ const MHA = () => {
     setIsInteractionModalOpen(true);
   };
 
-  const handleDeepResearch = () => {
-    if (selectedCompany) {
-      const meetingData: Meeting = {
-        id: selectedCompany.id,
-        title: `MHA Brief - ${selectedCompany.organization}`,
-        client: selectedCompany.organization,
-        time: 'Current',
-        type: 'meeting'
-      };
-      setSelectedAccountForBrief(meetingData);
-      setIsBriefModalOpen(true);
-      setIsCompanyModalOpen(false);
-    }
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'hot-lead': return 'bg-red-100 text-red-800';
@@ -285,6 +268,30 @@ const MHA = () => {
   );
 
   const selectedCount = mhaAccounts.filter(a => a.selected).length;
+
+  const handleDeepResearch = async () => {
+    if (!selectedCompany) return;
+    
+    setIsResearching(true);
+    setResearchData(null);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      const mockResearchData = `${selectedCompany.organization} is a high-priority Must Have Account with exceptional conversion potential.
+
+Key insights:
+• Strategic importance: Tier 1 healthcare organization with significant market influence
+• Recently announced major expansion plans and technology modernization initiatives
+• Current pain points align perfectly with our healthcare compliance solutions
+• Decision timeline: Q1 2025 with budget approval already secured
+• Key stakeholders are actively engaged and showing strong interest
+
+Competitive landscape analysis shows we have a significant advantage due to our specialized healthcare expertise and proven track record in similar organizations.`;
+      
+      setResearchData(mockResearchData);
+      setIsResearching(false);
+    }, 2000);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -391,9 +398,49 @@ const MHA = () => {
           
           {selectedCompany && (
             <div className="space-y-6">
-              <Button onClick={handleDeepResearch} className="w-full bg-blue-600 hover:bg-blue-700">
-                Deep Research
-              </Button>
+              {/* Deep Research Section */}
+              <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold text-slate-900 flex items-center justify-between">
+                    <span className="flex items-center">
+                      <Search className="w-5 h-5 mr-2 text-blue-600" />
+                      Company Intelligence
+                    </span>
+                    <Button
+                      onClick={handleDeepResearch}
+                      disabled={isResearching}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    >
+                      {isResearching ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sage AI is fetching...
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-4 h-4 mr-2" />
+                          Deep Research
+                        </>
+                      )}
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {researchData ? (
+                    <div className="prose prose-sm max-w-none">
+                      <div className="bg-white/70 p-4 rounded-lg border border-blue-200">
+                        <pre className="whitespace-pre-wrap text-slate-700 font-sans text-sm leading-relaxed">
+                          {researchData}
+                        </pre>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-slate-600 italic">
+                      Click "Deep Research" to get AI-powered insights about {selectedCompany.organization}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
               
               <div>
                 <h3 className="text-lg font-semibold mb-4">Organization Contacts</h3>
@@ -486,15 +533,6 @@ const MHA = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      <BriefModal
-        isOpen={isBriefModalOpen}
-        onClose={() => {
-          setIsBriefModalOpen(false);
-          setSelectedAccountForBrief(null);
-        }}
-        meeting={selectedAccountForBrief}
-      />
     </div>
   );
 };

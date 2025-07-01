@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Search, Filter, TrendingUp, Phone, Mail, MapPin, Users, MessageSquare, PhoneCall, Calendar, FileText } from 'lucide-react';
+import { Search, Filter, TrendingUp, Phone, Mail, MapPin, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import BriefModal from '@/components/BriefModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 
@@ -55,12 +54,12 @@ const Prospects = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [stageFilter, setStageFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
-  const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
-  const [selectedProspectForBrief, setSelectedProspectForBrief] = useState<Meeting | null>(null);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Prospect | null>(null);
   const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [isResearching, setIsResearching] = useState(false);
+  const [researchData, setResearchData] = useState<string | null>(null);
   const { toast } = useToast();
   
   const [prospects, setProspects] = useState<Prospect[]>([
@@ -241,19 +240,28 @@ const Prospects = () => {
     setIsInteractionModalOpen(true);
   };
 
-  const handleDeepResearch = () => {
-    if (selectedCompany) {
-      const meetingData: Meeting = {
-        id: selectedCompany.id,
-        title: `Prospect Brief - ${selectedCompany.company}`,
-        client: selectedCompany.company,
-        time: 'Current',
-        type: 'call'
-      };
-      setSelectedProspectForBrief(meetingData);
-      setIsBriefModalOpen(true);
-      setIsCompanyModalOpen(false);
-    }
+  const handleDeepResearch = async () => {
+    if (!selectedCompany) return;
+    
+    setIsResearching(true);
+    setResearchData(null);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      const mockResearchData = `${selectedCompany.company} is an emerging prospect with significant potential for partnership.
+
+Key insights:
+• Growing company with expanding market presence
+• Actively seeking technology solutions and partnerships
+• Strong leadership team with vision for growth
+• Current challenges include scaling operations and efficiency
+• High potential for conversion with our value proposition
+
+Competitive analysis shows they are evaluating multiple vendors, but our solution offers unique advantages in cost-effectiveness and implementation speed.`;
+      
+      setResearchData(mockResearchData);
+      setIsResearching(false);
+    }, 2000);
   };
 
   const getStageColor = (stage: string) => {
@@ -417,9 +425,49 @@ const Prospects = () => {
           
           {selectedCompany && (
             <div className="space-y-6">
-              <Button onClick={handleDeepResearch} className="w-full bg-blue-600 hover:bg-blue-700">
-                Deep Research
-              </Button>
+              {/* Deep Research Section */}
+              <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold text-slate-900 flex items-center justify-between">
+                    <span className="flex items-center">
+                      <Search className="w-5 h-5 mr-2 text-blue-600" />
+                      Company Intelligence
+                    </span>
+                    <Button
+                      onClick={handleDeepResearch}
+                      disabled={isResearching}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    >
+                      {isResearching ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sage AI is fetching...
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-4 h-4 mr-2" />
+                          Deep Research
+                        </>
+                      )}
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {researchData ? (
+                    <div className="prose prose-sm max-w-none">
+                      <div className="bg-white/70 p-4 rounded-lg border border-blue-200">
+                        <pre className="whitespace-pre-wrap text-slate-700 font-sans text-sm leading-relaxed">
+                          {researchData}
+                        </pre>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-slate-600 italic">
+                      Click "Deep Research" to get AI-powered insights about {selectedCompany.company}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
               
               <div>
                 <h3 className="text-lg font-semibold mb-4">Company Contacts</h3>
@@ -512,15 +560,6 @@ const Prospects = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      <BriefModal
-        isOpen={isBriefModalOpen}
-        onClose={() => {
-          setIsBriefModalOpen(false);
-          setSelectedProspectForBrief(null);
-        }}
-        meeting={selectedProspectForBrief}
-      />
     </div>
   );
 };
