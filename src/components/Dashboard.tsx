@@ -51,6 +51,7 @@ const Dashboard = () => {
       title: 'Follow up with ABC Corp proposal',
       assignee: 'John Smith',
       dueDate: '2024-12-30',
+      dueTime: '10:00 AM',
       priority: 'high',
       status: 'pending',
       category: 'today'
@@ -60,6 +61,7 @@ const Dashboard = () => {
       title: 'Prepare demo for XYZ Solutions',
       assignee: 'Sarah Johnson',
       dueDate: '2024-12-31',
+      dueTime: '2:30 PM',
       priority: 'medium',
       status: 'pending',
       category: 'week'
@@ -69,6 +71,7 @@ const Dashboard = () => {
       title: 'Send contract to DEF Industries',
       assignee: 'Mike Davis',
       dueDate: '2024-12-28',
+      dueTime: '11:15 AM',
       priority: 'high',
       status: 'pending',
       category: 'overdue'
