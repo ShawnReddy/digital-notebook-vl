@@ -9,6 +9,7 @@ import TodaysSchedule from './TodaysSchedule';
 import TaskManagementPane from './TaskManagementPane';
 import TaskBreakdownModal from './TaskBreakdownModal';
 import { mockTasks, mockPersonalTasks, getTasksByStatus, type Task, type PersonalTask } from '@/data/taskData';
+import { useToast } from '@/hooks/use-toast';
 
 interface Meeting {
   id: string;
@@ -20,6 +21,7 @@ interface Meeting {
 
 const Dashboard = () => {
   const { userProfile } = useAuth();
+  const { toast } = useToast();
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isPersonalTaskModalOpen, setIsPersonalTaskModalOpen] = useState(false);
   const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
@@ -58,13 +60,25 @@ const Dashboard = () => {
 
   const handleTaskSave = (taskData: Omit<Task, 'id'>) => {
     if (editingTask) {
-      setTasks(tasks.map(t => t.id === editingTask.id ? { ...taskData, id: editingTask.id } : t));
+      // Update existing task
+      const updatedTasks = tasks.map(t => t.id === editingTask.id ? { ...taskData, id: editingTask.id } : t);
+      setTasks(updatedTasks);
+      toast({
+        title: "Task Updated",
+        description: `Task "${taskData.title}" has been updated successfully.`,
+      });
     } else {
+      // Create new task
       const newTask: Task = {
         ...taskData,
         id: Date.now().toString()
       };
-      setTasks([...tasks, newTask]);
+      const updatedTasks = [...tasks, newTask];
+      setTasks(updatedTasks);
+      toast({
+        title: "Task Created",
+        description: `Task "${taskData.title}" has been created and assigned to ${taskData.assignee}.`,
+      });
     }
     setIsTaskModalOpen(false);
     setEditingTask(null);
@@ -73,12 +87,20 @@ const Dashboard = () => {
   const handlePersonalTaskSave = (taskData: Omit<PersonalTask, 'id'>) => {
     if (editingPersonalTask) {
       setPersonalTasks(personalTasks.map(t => t.id === editingPersonalTask.id ? { ...taskData, id: editingPersonalTask.id } : t));
+      toast({
+        title: "Personal Task Updated",
+        description: `Personal task "${taskData.title}" has been updated successfully.`,
+      });
     } else {
       const newTask: PersonalTask = {
         ...taskData,
         id: Date.now().toString()
       };
       setPersonalTasks([...personalTasks, newTask]);
+      toast({
+        title: "Personal Task Created",
+        description: `Personal task "${taskData.title}" has been created.`,
+      });
     }
     setIsPersonalTaskModalOpen(false);
     setEditingPersonalTask(null);
@@ -100,6 +122,10 @@ const Dashboard = () => {
     setIsBriefModalOpen(true);
   };
 
+  const handleAddPersonalTask = () => {
+    setIsPersonalTaskModalOpen(true);
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -107,7 +133,7 @@ const Dashboard = () => {
   const displayName = userProfile?.full_name || 'User';
   const firstName = displayName.split(' ')[0];
 
-  // Get all pending tasks for the breakdown modal
+  // Get all pending tasks for the breakdown modal and stats
   const allPendingTasks = getTasksByStatus(tasks, 'pending');
 
   return (
@@ -149,7 +175,7 @@ const Dashboard = () => {
           <div className="xl:col-span-7">
             <TaskManagementPane 
               tasks={tasks}
-              onAddPersonalTask={() => setIsPersonalTaskModalOpen(true)}
+              onAddPersonalTask={handleAddPersonalTask}
             />
           </div>
         </div>
