@@ -5,13 +5,22 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Plus, Users, User, Clock, Flag, Calendar, Info, Building } from 'lucide-react';
 import { getTasksByDate, getTeamTasks, getMyTasks, type Task } from '@/data/taskData';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TaskManagementPaneProps {
   tasks: Task[];
   onAddPersonalTask: () => void;
+  onAddManualTask: () => void;
+  onAddTaskFromClient: (preset: { company: string; person: string }) => void;
 }
 
-const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ tasks, onAddPersonalTask }) => {
+const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ 
+  tasks, 
+  onAddPersonalTask, 
+  onAddManualTask,
+  onAddTaskFromClient 
+}) => {
+  const { userProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<'team' | 'personal'>('team');
 
   // Get today and tomorrow dates
@@ -22,9 +31,12 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ tasks, onAddPer
   const todayStr = today.toISOString().split('T')[0];
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-  // Filter tasks based on tab selection
-  const teamTasks = getTeamTasks(tasks);
-  const myTasks = getMyTasks(tasks);
+  // Get current user name for filtering
+  const currentUserName = userProfile?.full_name || 'User';
+
+  // Filter tasks based on tab selection and current user
+  const teamTasks = tasks.filter(task => task.assignee !== currentUserName);
+  const myTasks = tasks.filter(task => task.assignee === currentUserName);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -141,7 +153,7 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ tasks, onAddPer
         <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
         {showAddButton && (
           <Button 
-            onClick={onAddPersonalTask}
+            onClick={activeTab === 'personal' ? onAddPersonalTask : onAddManualTask}
             variant="outline"
             size="sm"
             className="border-dashed border-2 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-sm"
@@ -226,7 +238,7 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ tasks, onAddPer
         </CardHeader>
         
         <CardContent className="space-y-6 max-h-96 overflow-y-auto px-6 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-          {renderTaskSection('Due Today', todayTasks, activeTab === 'personal')}
+          {renderTaskSection('Due Today', todayTasks, true)}
           {renderTaskSection('Due Tomorrow', tomorrowTasks)}
         </CardContent>
       </Card>

@@ -29,6 +29,7 @@ const Dashboard = () => {
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingPersonalTask, setEditingPersonalTask] = useState<PersonalTask | null>(null);
+  const [taskModalPreset, setTaskModalPreset] = useState<{ company: string; person: string } | null>(null);
   
   // Use centralized task data
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
@@ -82,6 +83,7 @@ const Dashboard = () => {
     }
     setIsTaskModalOpen(false);
     setEditingTask(null);
+    setTaskModalPreset(null);
   };
 
   const handlePersonalTaskSave = (taskData: Omit<PersonalTask, 'id'>) => {
@@ -126,6 +128,16 @@ const Dashboard = () => {
     setIsPersonalTaskModalOpen(true);
   };
 
+  const handleAddTaskFromClient = (preset: { company: string; person: string }) => {
+    setTaskModalPreset(preset);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleAddManualTask = () => {
+    setTaskModalPreset(null);
+    setIsTaskModalOpen(true);
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -133,8 +145,24 @@ const Dashboard = () => {
   const displayName = userProfile?.full_name || 'User';
   const firstName = displayName.split(' ')[0];
 
-  // Get all pending tasks for the breakdown modal and stats
-  const allPendingTasks = getTasksByStatus(tasks, 'pending');
+  // Get current user's pending tasks for the pending tasks tile
+  const currentUserName = userProfile?.full_name || 'User';
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const todayStr = today.toISOString().split('T')[0];
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+  // Filter for my pending tasks that are due today, overdue, or due tomorrow
+  const myPendingTasks = tasks.filter(task => 
+    task.assignee === currentUserName && 
+    task.status === 'pending' &&
+    (task.dueDate === todayStr || task.dueDate === tomorrowStr || task.dueDate <= yesterdayStr)
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -161,7 +189,7 @@ const Dashboard = () => {
         {/* Stats Overview */}
         <StatsOverview
           meetingsCount={meetings.length}
-          pendingTasksCount={allPendingTasks.length}
+          pendingTasksCount={myPendingTasks.length}
           onPendingTasksClick={() => setIsTaskBreakdownOpen(true)}
         />
 
@@ -176,6 +204,8 @@ const Dashboard = () => {
             <TaskManagementPane 
               tasks={tasks}
               onAddPersonalTask={handleAddPersonalTask}
+              onAddManualTask={handleAddManualTask}
+              onAddTaskFromClient={handleAddTaskFromClient}
             />
           </div>
         </div>
@@ -185,9 +215,11 @@ const Dashboard = () => {
           onClose={() => {
             setIsTaskModalOpen(false);
             setEditingTask(null);
+            setTaskModalPreset(null);
           }}
           onSave={handleTaskSave}
           task={editingTask}
+          preset={taskModalPreset}
         />
 
         <PersonalTaskModal
@@ -212,7 +244,7 @@ const Dashboard = () => {
         <TaskBreakdownModal
           isOpen={isTaskBreakdownOpen}
           onClose={() => setIsTaskBreakdownOpen(false)}
-          tasks={allPendingTasks}
+          tasks={myPendingTasks}
         />
       </div>
     </div>

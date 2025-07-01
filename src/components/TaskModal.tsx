@@ -284,6 +284,20 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
             </Select>
           </div>
 
+          {/* Auto-tagged Section - Only show when auto-tagged */}
+          {isAutoTagged && (
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center mb-2">
+                <Building className="w-4 h-4 mr-2 text-blue-600" />
+                <span className="text-sm font-semibold text-blue-800">Auto-Tagged To:</span>
+              </div>
+              <div className="text-sm text-blue-700">
+                <div className="font-medium">{preset?.person}</div>
+                <div className="text-blue-600">{preset?.company}</div>
+              </div>
+            </div>
+          )}
+
           {/* Manual Tag Selection - Only show when not auto-tagged */}
           {!isAutoTagged && (
             <div className="space-y-4">
@@ -359,20 +373,6 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
                   This task will be tagged as a personal task.
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Auto-tagged Section - Only show when auto-tagged */}
-          {isAutoTagged && (
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="flex items-center mb-2">
-                <Building className="w-4 h-4 mr-2 text-blue-600" />
-                <span className="text-sm font-semibold text-blue-800">Auto-Tagged To:</span>
-              </div>
-              <div className="text-sm text-blue-700">
-                <div className="font-medium">{preset?.person}</div>
-                <div className="text-blue-600">{preset?.company}</div>
-              </div>
             </div>
           )}
 
