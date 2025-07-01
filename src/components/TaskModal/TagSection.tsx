@@ -92,9 +92,35 @@ const TagSection: React.FC<TagSectionProps> = ({
   const [availableCompanies, setAvailableCompanies] = useState<string[]>([]);
   const [availablePeople, setAvailablePeople] = useState<Array<{ name: string; title?: string }>>([]);
 
+  // Initialize state based on current tag
+  useEffect(() => {
+    if (tag.type === 'company' && tag.name) {
+      // Find which client type this company belongs to
+      for (const [clientType, companies] of Object.entries(companiesByType)) {
+        if (companies.includes(tag.name)) {
+          setSelectedClientType(clientType);
+          setAvailableCompanies(companies);
+          setSelectedCompany(tag.name);
+          break;
+        }
+      }
+    } else if (tag.type === 'person' && tag.company) {
+      // Find which client type this company belongs to
+      for (const [clientType, companies] of Object.entries(companiesByType)) {
+        if (companies.includes(tag.company)) {
+          setSelectedClientType(clientType);
+          setAvailableCompanies(companies);
+          setSelectedCompany(tag.company);
+          setAvailablePeople(peopleByCompany[tag.company] || []);
+          break;
+        }
+      }
+    }
+  }, [tag]);
+
   // Reset selections when tag type changes
   useEffect(() => {
-    if (tag.type !== 'person') {
+    if (tag.type === 'personal') {
       setSelectedClientType('');
       setSelectedCompany('');
       setAvailableCompanies([]);
@@ -103,20 +129,29 @@ const TagSection: React.FC<TagSectionProps> = ({
   }, [tag.type]);
 
   // Update available companies when client type changes
-  useEffect(() => {
-    if (selectedClientType && tag.type === 'person') {
-      setAvailableCompanies(companiesByType[selectedClientType as keyof typeof companiesByType] || []);
-      setSelectedCompany('');
-      setAvailablePeople([]);
-    }
-  }, [selectedClientType, tag.type]);
+  const handleClientTypeChange = (clientType: string) => {
+    setSelectedClientType(clientType);
+    const companies = companiesByType[clientType as keyof typeof companiesByType] || [];
+    setAvailableCompanies(companies);
+    setSelectedCompany('');
+    setAvailablePeople([]);
+    // Clear the tag name when client type changes
+    onTagNameChange('');
+  };
 
   // Update available people when company changes
-  useEffect(() => {
-    if (selectedCompany && tag.type === 'person') {
-      setAvailablePeople(peopleByCompany[selectedCompany] || []);
+  const handleCompanyChange = (company: string) => {
+    setSelectedCompany(company);
+    const people = peopleByCompany[company] || [];
+    setAvailablePeople(people);
+    
+    if (tag.type === 'company') {
+      onTagNameChange(company);
+    } else if (tag.type === 'person') {
+      // Clear person selection when company changes
+      onTagNameChange('');
     }
-  }, [selectedCompany, tag.type]);
+  };
 
   const handlePersonSelection = (personName: string) => {
     onTagNameChange(personName);
@@ -173,13 +208,13 @@ const TagSection: React.FC<TagSectionProps> = ({
         </Button>
       </div>
 
-      {tag.type === 'company' && (
+      {(tag.type === 'company' || tag.type === 'person') && (
         <div className="space-y-4">
-          <Select value={selectedClientType} onValueChange={setSelectedClientType}>
-            <SelectTrigger className="h-12 border-slate-200">
+          <Select value={selectedClientType} onValueChange={handleClientTypeChange}>
+            <SelectTrigger className="h-12 border-slate-200 bg-white">
               <SelectValue placeholder="Select client type" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200">
+            <SelectContent className="bg-white border-slate-200 z-50">
               <SelectItem value="clients" className="hover:bg-slate-50">Clients</SelectItem>
               <SelectItem value="prospects" className="hover:bg-slate-50">Prospects</SelectItem>
               <SelectItem value="inactive" className="hover:bg-slate-50">Inactive</SelectItem>
@@ -187,43 +222,12 @@ const TagSection: React.FC<TagSectionProps> = ({
             </SelectContent>
           </Select>
 
-          {selectedClientType && (
-            <Select value={tag.name} onValueChange={onTagNameChange}>
-              <SelectTrigger className="h-12 border-slate-200">
+          {selectedClientType && availableCompanies.length > 0 && (
+            <Select value={selectedCompany} onValueChange={handleCompanyChange}>
+              <SelectTrigger className="h-12 border-slate-200 bg-white">
                 <SelectValue placeholder="Select company" />
               </SelectTrigger>
-              <SelectContent className="bg-white border-slate-200">
-                {availableCompanies.map((company) => (
-                  <SelectItem key={company} value={company} className="hover:bg-slate-50">
-                    {company}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-      )}
-
-      {tag.type === 'person' && (
-        <div className="space-y-4">
-          <Select value={selectedClientType} onValueChange={setSelectedClientType}>
-            <SelectTrigger className="h-12 border-slate-200">
-              <SelectValue placeholder="Select client type" />
-            </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200">
-              <SelectItem value="clients" className="hover:bg-slate-50">Clients</SelectItem>
-              <SelectItem value="prospects" className="hover:bg-slate-50">Prospects</SelectItem>
-              <SelectItem value="inactive" className="hover:bg-slate-50">Inactive</SelectItem>
-              <SelectItem value="mha" className="hover:bg-slate-50">MHA</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {selectedClientType && (
-            <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-              <SelectTrigger className="h-12 border-slate-200">
-                <SelectValue placeholder="Select company" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-slate-200">
+              <SelectContent className="bg-white border-slate-200 z-50">
                 {availableCompanies.map((company) => (
                   <SelectItem key={company} value={company} className="hover:bg-slate-50">
                     {company}
@@ -233,12 +237,12 @@ const TagSection: React.FC<TagSectionProps> = ({
             </Select>
           )}
 
-          {selectedCompany && availablePeople.length > 0 && (
+          {tag.type === 'person' && selectedCompany && availablePeople.length > 0 && (
             <Select value={tag.name} onValueChange={handlePersonSelection}>
-              <SelectTrigger className="h-12 border-slate-200">
+              <SelectTrigger className="h-12 border-slate-200 bg-white">
                 <SelectValue placeholder="Select person" />
               </SelectTrigger>
-              <SelectContent className="bg-white border-slate-200">
+              <SelectContent className="bg-white border-slate-200 z-50">
                 {availablePeople.map((person) => (
                   <SelectItem key={person.name} value={person.name} className="hover:bg-slate-50">
                     <div>

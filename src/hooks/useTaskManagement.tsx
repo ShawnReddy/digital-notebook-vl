@@ -110,9 +110,12 @@ export const useTaskManagement = () => {
   };
 
   const handleTaskComplete = (taskId: string) => {
-    setTasks(tasks.map(t => 
-      t.id === taskId ? { ...t, status: 'completed' as const } : t
-    ));
+    // Remove the task from the tasks array instead of just marking it as completed
+    setTasks(tasks.filter(t => t.id !== taskId));
+    toast({
+      title: "Task Completed",
+      description: "Task has been completed and removed from your list.",
+    });
   };
 
   return {

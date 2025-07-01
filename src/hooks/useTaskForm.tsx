@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { type Task, type TaskTag } from '@/data/taskData';
@@ -115,15 +114,16 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
   };
 
   const handleTagNameChange = (name: string, people?: Array<{ name: string; company: string }>) => {
-    if (formData.tag.type === 'person' && people) {
-      // Find the person in the people array to get their company
-      const selectedPerson = people.find(p => p.name === name);
+    if (formData.tag.type === 'person') {
+      // For person tags, we need to get the company from the current selected company
+      // The TagSection component manages the company selection flow
       setFormData(prev => ({
         ...prev,
         tag: {
           ...prev.tag,
           name,
-          company: selectedPerson?.company || ''
+          // Keep the existing company if it exists, or use empty string
+          company: prev.tag.company || ''
         }
       }));
     } else {
@@ -137,11 +137,25 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
     }
   };
 
+  const handleTagCompanyChange = (company: string) => {
+    if (formData.tag.type === 'person') {
+      setFormData(prev => ({
+        ...prev,
+        tag: {
+          ...prev.tag,
+          company,
+          name: '' // Reset person name when company changes
+        }
+      }));
+    }
+  };
+
   return {
     formData,
     currentUserName,
     handleInputChange,
     handleTagTypeChange,
-    handleTagNameChange
+    handleTagNameChange,
+    handleTagCompanyChange
   };
 };
