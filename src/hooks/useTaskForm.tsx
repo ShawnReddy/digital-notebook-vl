@@ -114,15 +114,16 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
     }));
   };
 
-  const handleTagNameChange = (name: string) => {
-    if (formData.tag.type === 'person') {
-      // For person tags, we need to find the company from our selection process
-      // The company will be set through the enhanced TagSection component
+  const handleTagNameChange = (name: string, people?: Array<{ name: string; company: string }>) => {
+    if (formData.tag.type === 'person' && people) {
+      // Find the person in the people array to get their company
+      const selectedPerson = people.find(p => p.name === name);
       setFormData(prev => ({
         ...prev,
         tag: {
           ...prev.tag,
-          name
+          name,
+          company: selectedPerson?.company || ''
         }
       }));
     } else {
