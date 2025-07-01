@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import TaskModal from './TaskModal';
@@ -34,6 +33,23 @@ const Dashboard = () => {
   // Use centralized task data
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>(mockPersonalTasks);
+
+  // Helper function to check if a task belongs to Shawn
+  const isMyTask = (task: Task): boolean => {
+    const currentUserName = userProfile?.full_name || 'Shawn';
+    
+    // Check if assigned to me
+    if (task.assignee === currentUserName) return true;
+    
+    // Check if tagged to me (person tag with my name)
+    if (task.tag.type === 'person' && task.tag.name === currentUserName) return true;
+    
+    // For Shawn's account, also check if assigned to "Shawn"
+    if (task.assignee === 'Shawn') return true;
+    if (task.tag.type === 'person' && task.tag.name === 'Shawn') return true;
+    
+    return false;
+  };
 
   const meetings: Meeting[] = [
     {
@@ -145,8 +161,7 @@ const Dashboard = () => {
   const displayName = userProfile?.full_name || 'User';
   const firstName = displayName.split(' ')[0];
 
-  // Get current user's pending tasks for the pending tasks tile
-  const currentUserName = userProfile?.full_name || 'User';
+  // Get dates for filtering
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -157,9 +172,9 @@ const Dashboard = () => {
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
   const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-  // Filter for my pending tasks that are due today, overdue, or due tomorrow
+  // Filter for MY pending tasks that are due today, overdue, or due tomorrow
   const myPendingTasks = tasks.filter(task => 
-    task.assignee === currentUserName && 
+    isMyTask(task) && 
     task.status === 'pending' &&
     (task.dueDate === todayStr || task.dueDate === tomorrowStr || task.dueDate <= yesterdayStr)
   );
@@ -206,6 +221,7 @@ const Dashboard = () => {
               onAddPersonalTask={handleAddPersonalTask}
               onAddManualTask={handleAddManualTask}
               onAddTaskFromClient={handleAddTaskFromClient}
+              isMyTask={isMyTask}
             />
           </div>
         </div>

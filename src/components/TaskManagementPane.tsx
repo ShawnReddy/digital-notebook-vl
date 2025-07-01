@@ -12,13 +12,15 @@ interface TaskManagementPaneProps {
   onAddPersonalTask: () => void;
   onAddManualTask: () => void;
   onAddTaskFromClient: (preset: { company: string; person: string }) => void;
+  isMyTask: (task: Task) => boolean;
 }
 
 const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ 
   tasks, 
   onAddPersonalTask, 
   onAddManualTask,
-  onAddTaskFromClient 
+  onAddTaskFromClient,
+  isMyTask
 }) => {
   const { userProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<'team' | 'personal'>('team');
@@ -31,12 +33,9 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({
   const todayStr = today.toISOString().split('T')[0];
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-  // Get current user name for filtering
-  const currentUserName = userProfile?.full_name || 'User';
-
-  // Filter tasks based on tab selection and current user
-  const teamTasks = tasks.filter(task => task.assignee !== currentUserName);
-  const myTasks = tasks.filter(task => task.assignee === currentUserName);
+  // Filter tasks based on tab selection using the isMyTask function
+  const teamTasks = tasks.filter(task => !isMyTask(task));
+  const myTasks = tasks.filter(task => isMyTask(task));
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
