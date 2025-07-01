@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { User, Calendar, Flag, Tag, Building } from 'lucide-react';
 import { type Task, type TaskTag } from '@/data/taskData';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -20,6 +20,9 @@ interface TaskModalProps {
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, preset }) => {
+  const { userProfile } = useAuth();
+  const currentUserName = userProfile?.full_name || 'Shawn';
+
   const [formData, setFormData] = useState<{
     title: string;
     assignee: string;
@@ -33,7 +36,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
     clientType: 'clients' | 'prospects' | 'inactive' | 'mha' | 'personal';
   }>({
     title: '',
-    assignee: '',
+    assignee: currentUserName, // Auto-assign to current user
     dueDate: '',
     dueTime: '',
     priority: 'medium',
@@ -91,7 +94,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
     } else if (preset) {
       setFormData({
         title: '',
-        assignee: '',
+        assignee: currentUserName, // Always assign to current user
         dueDate: '',
         dueTime: '',
         priority: 'medium',
@@ -108,7 +111,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
     } else {
       setFormData({
         title: '',
-        assignee: '',
+        assignee: currentUserName, // Always assign to current user
         dueDate: '',
         dueTime: '',
         priority: 'medium',
@@ -122,10 +125,11 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
         clientType: 'clients'
       });
     }
-  }, [task, preset, isOpen]);
+  }, [task, preset, isOpen, currentUserName]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('TaskModal submitting task:', formData);
     onSave(formData);
   };
 
@@ -197,28 +201,19 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
             />
           </div>
 
+          {/* Assignee field - now readonly and shows only current user */}
           <div className="space-y-2">
             <Label htmlFor="assignee" className="text-sm font-semibold text-slate-700 flex items-center">
               <User className="w-4 h-4 mr-2" />
-              Assign To
+              Assigned To
             </Label>
-            <Select value={formData.assignee} onValueChange={(value) => handleInputChange('assignee', value)}>
-              <SelectTrigger className="h-12 border-slate-200">
-                <SelectValue placeholder="Select team member" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-slate-200">
-                {teamMembers.map((member) => (
-                  <SelectItem key={member} value={member} className="hover:bg-slate-50">
-                    <div className="flex items-center">
-                      <div className="w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center text-xs font-semibold mr-2">
-                        {member.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      {member}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center h-12 px-3 border border-slate-200 rounded-lg bg-slate-50">
+              <div className="w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center text-xs font-semibold mr-2">
+                {currentUserName.split(' ').map(n => n[0]).join('')}
+              </div>
+              <span className="text-slate-700 font-medium">{currentUserName}</span>
+              <span className="ml-2 text-xs text-slate-500">(You)</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

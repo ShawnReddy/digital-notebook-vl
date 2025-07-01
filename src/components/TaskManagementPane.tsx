@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +24,7 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({
   isMyTask
 }) => {
   const { userProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'team' | 'personal'>('team');
+  const [activeTab, setActiveTab] = useState<'team' | 'personal'>('personal'); // Changed default to 'personal'
 
   // Get today and tomorrow dates
   const today = new Date();
@@ -150,9 +151,9 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
-        {showAddButton && (
+        {showAddButton && activeTab === 'personal' && ( // Only show add button on personal tab
           <Button 
-            onClick={activeTab === 'personal' ? onAddPersonalTask : onAddManualTask}
+            onClick={onAddManualTask}
             variant="outline"
             size="sm"
             className="border-dashed border-2 border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-sm"

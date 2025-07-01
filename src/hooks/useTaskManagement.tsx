@@ -10,7 +10,7 @@ export const useTaskManagement = () => {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>(mockPersonalTasks);
 
-  // Helper function to check if a task belongs to the current user (Shawn)
+  // Helper function to check if a task belongs to the current user
   const isMyTask = (task: Task): boolean => {
     const currentUserName = userProfile?.full_name || 'Shawn';
     
@@ -82,7 +82,7 @@ export const useTaskManagement = () => {
       
       toast({
         title: "Task Created",
-        description: `Task "${taskData.title}" has been created and assigned to ${taskData.assignee}.`,
+        description: `Task "${taskData.title}" has been created successfully.`,
       });
     }
     
