@@ -122,6 +122,7 @@ const Dashboard = () => {
               onAddPersonalTask={handleAddPersonalTask}
               onAddManualTask={handleAddManualTask}
               onAddTaskFromClient={handleAddTaskFromClient}
+              onTaskComplete={handleTaskComplete}
               isMyTask={isMyTask}
             />
           </div>

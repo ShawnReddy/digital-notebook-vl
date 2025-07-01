@@ -49,7 +49,7 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
     if (task) {
       setFormData({
         title: task.title,
-        assignee: task.assignee,
+        assignee: currentUserName, // Always assign to current user
         dueDate: task.dueDate,
         dueTime: task.dueTime,
         priority: task.priority,
@@ -114,15 +114,15 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
     }));
   };
 
-  const handleTagNameChange = (name: string, people: Array<{ name: string; company: string }>) => {
+  const handleTagNameChange = (name: string) => {
     if (formData.tag.type === 'person') {
-      const selectedPerson = people.find(p => p.name === name);
+      // For person tags, we need to find the company from our selection process
+      // The company will be set through the enhanced TagSection component
       setFormData(prev => ({
         ...prev,
         tag: {
           ...prev.tag,
-          name,
-          company: selectedPerson?.company || ''
+          name
         }
       }));
     } else {

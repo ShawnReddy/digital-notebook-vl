@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Users, User, Clock, Flag, Calendar, Info, Building } from 'lucide-react';
+import { Plus, Users, User, Clock, Flag, Calendar, Info, Building, Check } from 'lucide-react';
 import { getTasksByDate, getTeamTasks, getMyTasks, type Task } from '@/data/taskData';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -13,6 +13,7 @@ interface TaskManagementPaneProps {
   onAddPersonalTask: () => void;
   onAddManualTask: () => void;
   onAddTaskFromClient: (preset: { company: string; person: string }) => void;
+  onTaskComplete: (taskId: string) => void;
   isMyTask: (task: Task) => boolean;
 }
 
@@ -21,10 +22,11 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({
   onAddPersonalTask, 
   onAddManualTask,
   onAddTaskFromClient,
+  onTaskComplete,
   isMyTask
 }) => {
   const { userProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'team' | 'personal'>('personal'); // Changed default to 'personal'
+  const [activeTab, setActiveTab] = useState<'team' | 'personal'>('personal');
 
   // Get today and tomorrow dates
   const today = new Date();
@@ -113,6 +115,16 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({
                 {getPriorityIcon(task.priority)}
                 <span className="capitalize">{task.priority}</span>
               </Badge>
+              {isMyTask(task) && (
+                <Button
+                  onClick={() => onTaskComplete(task.id)}
+                  size="sm"
+                  variant="outline"
+                  className="h-8 w-8 p-0 border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300"
+                >
+                  <Check className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
           
@@ -151,7 +163,7 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
-        {showAddButton && activeTab === 'personal' && ( // Only show add button on personal tab
+        {showAddButton && activeTab === 'personal' && (
           <Button 
             onClick={onAddManualTask}
             variant="outline"
