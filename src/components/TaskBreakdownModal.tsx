@@ -3,19 +3,8 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, Flag, Users, UserCheck, UserX, Building } from 'lucide-react';
-
-interface Task {
-  id: string;
-  title: string;
-  assignee: string;
-  dueDate: string;
-  dueTime: string;
-  priority: 'high' | 'medium' | 'low';
-  status: 'pending' | 'completed';
-  clientType: 'clients' | 'prospects' | 'inactive' | 'mha';
-  clientName: string;
-}
+import { Calendar, Clock, Flag, Users, UserCheck, UserX, Building, User } from 'lucide-react';
+import { type Task } from '@/data/taskData';
 
 interface TaskBreakdownModalProps {
   isOpen: boolean;
@@ -30,6 +19,7 @@ const TaskBreakdownModal: React.FC<TaskBreakdownModalProps> = ({ isOpen, onClose
       case 'prospects': return <UserCheck className="w-4 h-4 text-green-600" />;
       case 'inactive': return <UserX className="w-4 h-4 text-gray-600" />;
       case 'mha': return <Building className="w-4 h-4 text-purple-600" />;
+      case 'personal': return <User className="w-4 h-4 text-indigo-600" />;
       default: return <Users className="w-4 h-4 text-blue-600" />;
     }
   };
@@ -40,6 +30,7 @@ const TaskBreakdownModal: React.FC<TaskBreakdownModalProps> = ({ isOpen, onClose
       case 'prospects': return 'bg-green-50 text-green-700 border-green-200';
       case 'inactive': return 'bg-gray-50 text-gray-700 border-gray-200';
       case 'mha': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'personal': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       default: return 'bg-blue-50 text-blue-700 border-blue-200';
     }
   };
@@ -72,6 +63,28 @@ const TaskBreakdownModal: React.FC<TaskBreakdownModalProps> = ({ isOpen, onClose
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  const getTagDisplay = (task: Task) => {
+    switch (task.tag.type) {
+      case 'company':
+        return task.tag.name;
+      case 'person':
+        return `${task.tag.name}${task.tag.company ? ` (${task.tag.company})` : ''}`;
+      case 'personal':
+        return 'Personal Task';
+      default:
+        return task.tag.name;
+    }
+  };
+
+  const getTagIcon = (tagType: string) => {
+    switch (tagType) {
+      case 'company': return <Building className="w-3 h-3" />;
+      case 'person': return <User className="w-3 h-3" />;
+      case 'personal': return <User className="w-3 h-3" />;
+      default: return <Building className="w-3 h-3" />;
+    }
+  };
+
   const groupedTasks = tasks.reduce((acc, task) => {
     if (!acc[task.clientType]) {
       acc[task.clientType] = [];
@@ -84,7 +97,8 @@ const TaskBreakdownModal: React.FC<TaskBreakdownModalProps> = ({ isOpen, onClose
     clients: 'Active Clients',
     prospects: 'Prospects',
     inactive: 'Inactive Clients',
-    mha: 'MHA'
+    mha: 'MHA',
+    personal: 'Personal Tasks'
   };
 
   return (
@@ -125,9 +139,15 @@ const TaskBreakdownModal: React.FC<TaskBreakdownModalProps> = ({ isOpen, onClose
                         <h4 className="font-semibold text-slate-900 leading-relaxed group-hover:text-blue-900 transition-colors duration-200 mb-1">
                           {task.title}
                         </h4>
-                        <p className="text-sm text-slate-600 font-medium">
-                          Client: {task.clientName}
-                        </p>
+                        <div className="flex items-center text-sm text-slate-600 font-medium mb-1">
+                          {getTagIcon(task.tag.type)}
+                          <span className="ml-1">Tagged to: {getTagDisplay(task)}</span>
+                        </div>
+                        {task.source === 'compass' && (
+                          <Badge variant="outline" className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200">
+                            Compass
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge className={`px-3 py-1 text-xs font-medium rounded-full border ${getPriorityColor(task.priority)} flex items-center space-x-1`}>

@@ -4,24 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Users, User, Clock, Flag, Calendar, Info } from 'lucide-react';
-
-interface Task {
-  id: string;
-  title: string;
-  assignee: string;
-  dueDate: string;
-  dueTime: string;
-  priority: 'high' | 'medium' | 'low';
-  status: 'pending' | 'completed';
-  source: 'compass' | 'manual';
-}
+import { Plus, Users, User, Clock, Flag, Calendar, Info, Building } from 'lucide-react';
+import { getTasksByDate, getTeamTasks, getMyTasks, type Task } from '@/data/taskData';
 
 interface TaskManagementPaneProps {
+  tasks: Task[];
   onAddPersonalTask: () => void;
 }
 
-const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTask }) => {
+const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ tasks, onAddPersonalTask }) => {
   const [activeTab, setActiveTab] = useState<'team' | 'personal'>('team');
 
   // Get today and tomorrow dates
@@ -32,82 +23,9 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
   const todayStr = today.toISOString().split('T')[0];
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-  // Mock data - these would come from Compass CRM
-  const teamTasks: Task[] = [
-    {
-      id: '1',
-      title: 'Review Q4 sales pipeline with marketing team',
-      assignee: 'Sarah Johnson',
-      dueDate: todayStr,
-      dueTime: '10:00 AM',
-      priority: 'high',
-      status: 'pending',
-      source: 'compass'
-    },
-    {
-      id: '2',
-      title: 'Complete client onboarding documentation',
-      assignee: 'Mike Davis',
-      dueDate: todayStr,
-      dueTime: '2:30 PM',
-      priority: 'medium',
-      status: 'pending',
-      source: 'compass'
-    },
-    {
-      id: '3',
-      title: 'Prepare demo materials for prospect meeting',
-      assignee: 'Emily Chen',
-      dueDate: tomorrowStr,
-      dueTime: '9:15 AM',
-      priority: 'high',
-      status: 'pending',
-      source: 'compass'
-    },
-    {
-      id: '4',
-      title: 'Follow up with quarterly revenue reports',
-      assignee: 'David Wilson',
-      dueDate: tomorrowStr,
-      dueTime: '3:00 PM',
-      priority: 'medium',
-      status: 'pending',
-      source: 'compass'
-    }
-  ];
-
-  const personalTasks: Task[] = [
-    {
-      id: '5',
-      title: 'Follow up with ABC Corp proposal',
-      assignee: 'Shawn',
-      dueDate: todayStr,
-      dueTime: '3:00 PM',
-      priority: 'high',
-      status: 'pending',
-      source: 'compass'
-    },
-    {
-      id: '6',
-      title: 'Review contract terms with legal team',
-      assignee: 'Shawn',
-      dueDate: tomorrowStr,
-      dueTime: '11:30 AM',
-      priority: 'medium',
-      status: 'pending',
-      source: 'manual'
-    },
-    {
-      id: '7',
-      title: 'Prepare presentation for board meeting',
-      assignee: 'Shawn',
-      dueDate: tomorrowStr,
-      dueTime: '1:00 PM',
-      priority: 'high',
-      status: 'pending',
-      source: 'manual'
-    }
-  ];
+  // Filter tasks based on tab selection
+  const teamTasks = getTeamTasks(tasks);
+  const myTasks = getMyTasks(tasks);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -137,8 +55,26 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const filterTasksByDate = (tasks: Task[], targetDate: string) => {
-    return tasks.filter(task => task.dueDate === targetDate);
+  const getTagDisplay = (task: Task) => {
+    switch (task.tag.type) {
+      case 'company':
+        return task.tag.name;
+      case 'person':
+        return `${task.tag.name}${task.tag.company ? ` (${task.tag.company})` : ''}`;
+      case 'personal':
+        return 'Personal';
+      default:
+        return task.tag.name;
+    }
+  };
+
+  const getTagIcon = (tagType: string) => {
+    switch (tagType) {
+      case 'company': return <Building className="w-3 h-3" />;
+      case 'person': return <User className="w-3 h-3" />;
+      case 'personal': return <User className="w-3 h-3" />;
+      default: return <Building className="w-3 h-3" />;
+    }
   };
 
   const renderTaskList = (tasks: Task[]) => (
@@ -152,9 +88,15 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
           }`} />
           
           <div className="flex items-start justify-between mb-4">
-            <h4 className="font-semibold text-slate-900 flex-1 pr-3 leading-relaxed group-hover:text-blue-900 transition-colors duration-200">
-              {task.title}
-            </h4>
+            <div className="flex-1 pr-3">
+              <h4 className="font-semibold text-slate-900 leading-relaxed group-hover:text-blue-900 transition-colors duration-200 mb-2">
+                {task.title}
+              </h4>
+              <div className="flex items-center text-xs text-slate-600 mb-2">
+                {getTagIcon(task.tag.type)}
+                <span className="ml-1 font-medium">Tagged to: {getTagDisplay(task)}</span>
+              </div>
+            </div>
             <div className="flex items-center space-x-2">
               <Badge className={`px-3 py-1.5 text-xs font-medium rounded-full border ${getPriorityColor(task.priority)} flex items-center space-x-1.5`}>
                 {getPriorityIcon(task.priority)}
@@ -220,9 +162,9 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
     </div>
   );
 
-  const currentTasks = activeTab === 'team' ? teamTasks : personalTasks;
-  const todayTasks = filterTasksByDate(currentTasks, todayStr);
-  const tomorrowTasks = filterTasksByDate(currentTasks, tomorrowStr);
+  const currentTasks = activeTab === 'team' ? teamTasks : myTasks;
+  const todayTasks = getTasksByDate(currentTasks, todayStr);
+  const tomorrowTasks = getTasksByDate(currentTasks, tomorrowStr);
 
   return (
     <TooltipProvider>
@@ -278,7 +220,7 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({ onAddPersonalTa
               <div className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
                 activeTab === 'personal' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'
               }`}>
-                {personalTasks.length}
+                {myTasks.length}
               </div>
             </button>
           </div>

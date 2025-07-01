@@ -1,20 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { User, Calendar, Flag, Tag } from 'lucide-react';
-
-interface Task {
-  id: string;
-  title: string;
-  assignee: string;
-  dueDate: string;
-  priority: 'high' | 'medium' | 'low';
-  status: 'pending' | 'completed';
-  category: 'today' | 'week' | 'overdue';
-}
+import { User, Calendar, Flag, Tag, Building } from 'lucide-react';
+import { type Task, type TaskTag } from '@/data/taskData';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -28,16 +20,27 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) 
     title: string;
     assignee: string;
     dueDate: string;
+    dueTime: string;
     priority: 'high' | 'medium' | 'low';
     status: 'pending' | 'completed';
     category: 'today' | 'week' | 'overdue';
+    tag: TaskTag;
+    source: 'compass' | 'manual';
+    clientType: 'clients' | 'prospects' | 'inactive' | 'mha' | 'personal';
   }>({
     title: '',
     assignee: '',
     dueDate: '',
+    dueTime: '',
     priority: 'medium',
     status: 'pending',
-    category: 'today'
+    category: 'today',
+    tag: {
+      type: 'company',
+      name: ''
+    },
+    source: 'manual',
+    clientType: 'clients'
   });
 
   const teamMembers = [
@@ -45,7 +48,23 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) 
     'Sarah Johnson',
     'Mike Davis',
     'Emily Chen',
-    'David Wilson'
+    'David Wilson',
+    'Shawn'
+  ];
+
+  const companies = [
+    'ABC Corporation',
+    'XYZ Solutions Ltd',
+    'DEF Industries',
+    'Global Tech Solutions',
+    'Innovative Solutions Inc'
+  ];
+
+  const people = [
+    { name: 'Jennifer Martinez', company: 'ABC Corporation' },
+    { name: 'Sarah Williams', company: 'Innovative Solutions Inc' },
+    { name: 'Robert Chen', company: 'XYZ Solutions Ltd' },
+    { name: 'Michael Thompson', company: 'Global Tech Solutions' }
   ];
 
   useEffect(() => {
@@ -54,18 +73,29 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) 
         title: task.title,
         assignee: task.assignee,
         dueDate: task.dueDate,
+        dueTime: task.dueTime,
         priority: task.priority,
         status: task.status,
-        category: task.category
+        category: task.category,
+        tag: task.tag,
+        source: task.source,
+        clientType: task.clientType
       });
     } else {
       setFormData({
         title: '',
         assignee: '',
         dueDate: '',
+        dueTime: '',
         priority: 'medium',
         status: 'pending',
-        category: 'today'
+        category: 'today',
+        tag: {
+          type: 'company',
+          name: ''
+        },
+        source: 'manual',
+        clientType: 'clients'
       });
     }
   }, [task, isOpen]);
@@ -82,9 +112,43 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) 
     }));
   };
 
+  const handleTagTypeChange = (type: 'company' | 'person' | 'personal') => {
+    setFormData(prev => ({
+      ...prev,
+      tag: {
+        type,
+        name: '',
+        ...(type === 'person' ? { company: '' } : {})
+      },
+      clientType: type === 'personal' ? 'personal' : 'clients'
+    }));
+  };
+
+  const handleTagNameChange = (name: string) => {
+    if (formData.tag.type === 'person') {
+      const selectedPerson = people.find(p => p.name === name);
+      setFormData(prev => ({
+        ...prev,
+        tag: {
+          ...prev.tag,
+          name,
+          company: selectedPerson?.company || ''
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        tag: {
+          ...prev.tag,
+          name
+        }
+      }));
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+      <DialogContent className="sm:max-w-[600px] bg-white/95 backdrop-blur-sm border-0 shadow-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="pb-6">
           <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
@@ -133,19 +197,110 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) 
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dueDate" className="text-sm font-semibold text-slate-700 flex items-center">
-              <Calendar className="w-4 h-4 mr-2" />
-              Due Date
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="dueDate" className="text-sm font-semibold text-slate-700 flex items-center">
+                <Calendar className="w-4 h-4 mr-2" />
+                Due Date
+              </Label>
+              <Input
+                id="dueDate"
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => handleInputChange('dueDate', e.target.value)}
+                required
+                className="h-12 border-slate-200 focus:border-blue-400 focus:ring-blue-400/20"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dueTime" className="text-sm font-semibold text-slate-700">
+                Due Time
+              </Label>
+              <Input
+                id="dueTime"
+                type="time"
+                value={formData.dueTime}
+                onChange={(e) => handleInputChange('dueTime', e.target.value)}
+                required
+                className="h-12 border-slate-200 focus:border-blue-400 focus:ring-blue-400/20"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <Label className="text-sm font-semibold text-slate-700 flex items-center">
+              <Building className="w-4 h-4 mr-2" />
+              Tag Task To
             </Label>
-            <Input
-              id="dueDate"
-              type="date"
-              value={formData.dueDate}
-              onChange={(e) => handleInputChange('dueDate', e.target.value)}
-              required
-              className="h-12 border-slate-200 focus:border-blue-400 focus:ring-blue-400/20"
-            />
+            
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                type="button"
+                variant={formData.tag.type === 'company' ? 'default' : 'outline'}
+                onClick={() => handleTagTypeChange('company')}
+                className="h-10"
+              >
+                <Building className="w-4 h-4 mr-1" />
+                Company
+              </Button>
+              <Button
+                type="button"
+                variant={formData.tag.type === 'person' ? 'default' : 'outline'}
+                onClick={() => handleTagTypeChange('person')}
+                className="h-10"
+              >
+                <User className="w-4 h-4 mr-1" />
+                Person
+              </Button>
+              <Button
+                type="button"
+                variant={formData.tag.type === 'personal' ? 'default' : 'outline'}
+                onClick={() => handleTagTypeChange('personal')}
+                className="h-10"
+              >
+                Personal
+              </Button>
+            </div>
+
+            {formData.tag.type === 'company' && (
+              <Select value={formData.tag.name} onValueChange={handleTagNameChange}>
+                <SelectTrigger className="h-12 border-slate-200">
+                  <SelectValue placeholder="Select company" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-slate-200">
+                  {companies.map((company) => (
+                    <SelectItem key={company} value={company} className="hover:bg-slate-50">
+                      {company}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {formData.tag.type === 'person' && (
+              <Select value={formData.tag.name} onValueChange={handleTagNameChange}>
+                <SelectTrigger className="h-12 border-slate-200">
+                  <SelectValue placeholder="Select person" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-slate-200">
+                  {people.map((person) => (
+                    <SelectItem key={person.name} value={person.name} className="hover:bg-slate-50">
+                      <div>
+                        <div className="font-medium">{person.name}</div>
+                        <div className="text-xs text-gray-500">{person.company}</div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {formData.tag.type === 'personal' && (
+              <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
+                This task will be tagged as a personal task.
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

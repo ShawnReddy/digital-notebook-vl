@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import TaskModal from './TaskModal';
@@ -7,6 +8,7 @@ import StatsOverview from './StatsOverview';
 import TodaysSchedule from './TodaysSchedule';
 import TaskManagementPane from './TaskManagementPane';
 import TaskBreakdownModal from './TaskBreakdownModal';
+import { mockTasks, mockPersonalTasks, getTasksByStatus, type Task, type PersonalTask } from '@/data/taskData';
 
 interface Meeting {
   id: string;
@@ -14,26 +16,6 @@ interface Meeting {
   client: string;
   time: string;
   type: 'call' | 'meeting' | 'demo';
-}
-
-interface Task {
-  id: string;
-  title: string;
-  assignee: string;
-  dueDate: string;
-  dueTime: string;
-  priority: 'high' | 'medium' | 'low';
-  status: 'pending' | 'completed';
-  category: 'today' | 'week' | 'overdue';
-}
-
-interface PersonalTask {
-  id: string;
-  title: string;
-  dueDate: string;
-  dueTime: string;
-  priority: 'high' | 'medium' | 'low';
-  status: 'pending' | 'completed';
 }
 
 const Dashboard = () => {
@@ -45,40 +27,10 @@ const Dashboard = () => {
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingPersonalTask, setEditingPersonalTask] = useState<PersonalTask | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: 'Follow up with ABC Corp proposal',
-      assignee: 'John Smith',
-      dueDate: '2024-12-30',
-      dueTime: '10:00 AM',
-      priority: 'high',
-      status: 'pending',
-      category: 'today'
-    },
-    {
-      id: '2',
-      title: 'Prepare demo for XYZ Solutions',
-      assignee: 'Sarah Johnson',
-      dueDate: '2024-12-31',
-      dueTime: '2:30 PM',
-      priority: 'medium',
-      status: 'pending',
-      category: 'week'
-    },
-    {
-      id: '3',
-      title: 'Send contract to DEF Industries',
-      assignee: 'Mike Davis',
-      dueDate: '2024-12-28',
-      dueTime: '11:15 AM',
-      priority: 'high',
-      status: 'pending',
-      category: 'overdue'
-    }
-  ]);
-
-  const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>([]);
+  
+  // Use centralized task data
+  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>(mockPersonalTasks);
 
   const meetings: Meeting[] = [
     {
@@ -101,65 +53,6 @@ const Dashboard = () => {
       client: 'New Prospect Inc.',
       time: '4:00 PM',
       type: 'call'
-    }
-  ];
-
-  // Enhanced task data with client information for breakdown
-  const enhancedTasks = [
-    {
-      id: '1',
-      title: 'Follow up with ABC Corp proposal',
-      assignee: 'John Smith',
-      dueDate: '2024-12-30',
-      dueTime: '10:00 AM',
-      priority: 'high' as const,
-      status: 'pending' as const,
-      clientType: 'clients' as const,
-      clientName: 'ABC Corporation'
-    },
-    {
-      id: '2',
-      title: 'Prepare demo for XYZ Solutions',
-      assignee: 'Sarah Johnson',
-      dueDate: '2024-12-31',
-      dueTime: '2:30 PM',
-      priority: 'medium' as const,
-      status: 'pending' as const,
-      clientType: 'prospects' as const,
-      clientName: 'XYZ Solutions Ltd'
-    },
-    {
-      id: '3',
-      title: 'Send contract to DEF Industries',
-      assignee: 'Mike Davis',
-      dueDate: '2024-12-28',
-      dueTime: '11:15 AM',
-      priority: 'high' as const,
-      status: 'pending' as const,
-      clientType: 'inactive' as const,
-      clientName: 'DEF Industries'
-    },
-    {
-      id: '4',
-      title: 'Review MHA compliance documents',
-      assignee: 'Emily Chen',
-      dueDate: '2024-12-30',
-      dueTime: '3:45 PM',
-      priority: 'medium' as const,
-      status: 'pending' as const,
-      clientType: 'mha' as const,
-      clientName: 'MHA Regional Office'
-    },
-    {
-      id: '5',
-      title: 'Schedule quarterly review meeting',
-      assignee: 'David Wilson',
-      dueDate: '2024-12-29',
-      dueTime: '9:30 AM',
-      priority: 'low' as const,
-      status: 'pending' as const,
-      clientType: 'clients' as const,
-      clientName: 'Global Tech Solutions'
     }
   ];
 
@@ -214,6 +107,9 @@ const Dashboard = () => {
   const displayName = userProfile?.full_name || 'User';
   const firstName = displayName.split(' ')[0];
 
+  // Get all pending tasks for the breakdown modal
+  const allPendingTasks = getTasksByStatus(tasks, 'pending');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -239,7 +135,7 @@ const Dashboard = () => {
         {/* Stats Overview */}
         <StatsOverview
           meetingsCount={meetings.length}
-          pendingTasksCount={enhancedTasks.filter(t => t.status === 'pending').length}
+          pendingTasksCount={allPendingTasks.length}
           onPendingTasksClick={() => setIsTaskBreakdownOpen(true)}
         />
 
@@ -251,7 +147,10 @@ const Dashboard = () => {
 
           {/* Task Management Pane */}
           <div className="xl:col-span-7">
-            <TaskManagementPane onAddPersonalTask={() => setIsPersonalTaskModalOpen(true)} />
+            <TaskManagementPane 
+              tasks={tasks}
+              onAddPersonalTask={() => setIsPersonalTaskModalOpen(true)}
+            />
           </div>
         </div>
 
@@ -287,7 +186,7 @@ const Dashboard = () => {
         <TaskBreakdownModal
           isOpen={isTaskBreakdownOpen}
           onClose={() => setIsTaskBreakdownOpen(false)}
-          tasks={enhancedTasks.filter(t => t.status === 'pending')}
+          tasks={allPendingTasks}
         />
       </div>
     </div>
