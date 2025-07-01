@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import TaskModal from './TaskModal';
@@ -38,17 +39,41 @@ const Dashboard = () => {
   const isMyTask = (task: Task): boolean => {
     const currentUserName = userProfile?.full_name || 'Shawn';
     
+    console.log('Checking isMyTask for:', {
+      taskId: task.id,
+      title: task.title,
+      assignee: task.assignee,
+      currentUserName,
+      tag: task.tag
+    });
+    
     // Check if assigned to me by exact name match
-    if (task.assignee === currentUserName) return true;
-    if (task.assignee === 'Shawn') return true;
+    if (task.assignee === currentUserName) {
+      console.log('Task is mine - assigned to current user name');
+      return true;
+    }
+    if (task.assignee === 'Shawn') {
+      console.log('Task is mine - assigned to Shawn');
+      return true;
+    }
     
     // Check if tagged to me (person tag with my name)
-    if (task.tag.type === 'person' && task.tag.name === currentUserName) return true;
-    if (task.tag.type === 'person' && task.tag.name === 'Shawn') return true;
+    if (task.tag.type === 'person' && task.tag.name === currentUserName) {
+      console.log('Task is mine - tagged to current user name');
+      return true;
+    }
+    if (task.tag.type === 'person' && task.tag.name === 'Shawn') {
+      console.log('Task is mine - tagged to Shawn');
+      return true;
+    }
     
     // Check if tagged to me (company tag and I'm the assignee)
-    if (task.tag.type === 'company' && (task.assignee === currentUserName || task.assignee === 'Shawn')) return true;
+    if (task.tag.type === 'company' && (task.assignee === currentUserName || task.assignee === 'Shawn')) {
+      console.log('Task is mine - company tag with me as assignee');
+      return true;
+    }
     
+    console.log('Task is not mine');
     return false;
   };
 
@@ -77,13 +102,15 @@ const Dashboard = () => {
   ];
 
   const handleTaskSave = (taskData: Omit<Task, 'id'>) => {
-    console.log('Saving task:', taskData);
+    console.log('=== TASK SAVE START ===');
+    console.log('Saving task data:', taskData);
+    console.log('Current tasks before save:', tasks);
     
     if (editingTask) {
       // Update existing task
       const updatedTasks = tasks.map(t => t.id === editingTask.id ? { ...taskData, id: editingTask.id } : t);
       setTasks(updatedTasks);
-      console.log('Updated tasks:', updatedTasks);
+      console.log('Updated existing task, new tasks array:', updatedTasks);
       toast({
         title: "Task Updated",
         description: `Task "${taskData.title}" has been updated successfully.`,
@@ -94,15 +121,21 @@ const Dashboard = () => {
         ...taskData,
         id: Date.now().toString()
       };
+      console.log('Creating new task:', newTask);
+      console.log('Is this new task mine?', isMyTask(newTask));
+      
       const updatedTasks = [...tasks, newTask];
       setTasks(updatedTasks);
-      console.log('New task created:', newTask);
-      console.log('All tasks after creation:', updatedTasks);
+      console.log('Added new task, updated tasks array:', updatedTasks);
+      console.log('Total tasks after addition:', updatedTasks.length);
+      
       toast({
         title: "Task Created",
         description: `Task "${taskData.title}" has been created and assigned to ${taskData.assignee}.`,
       });
     }
+    
+    console.log('=== TASK SAVE END ===');
     setIsTaskModalOpen(false);
     setEditingTask(null);
     setTaskModalPreset(null);
@@ -178,6 +211,10 @@ const Dashboard = () => {
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
   const yesterdayStr = yesterday.toISOString().split('T')[0];
 
+  console.log('=== FILTERING TASKS ===');
+  console.log('All tasks:', tasks);
+  console.log('Today:', todayStr, 'Tomorrow:', tomorrowStr, 'Yesterday:', yesterdayStr);
+
   // Filter for MY pending tasks that are due today, overdue, or due tomorrow
   const myPendingTasks = tasks.filter(task => {
     const isMyTaskResult = isMyTask(task);
@@ -192,13 +229,15 @@ const Dashboard = () => {
       isMyTaskResult,
       isPending,
       isDueRelevant,
-      dueDate: task.dueDate
+      dueDate: task.dueDate,
+      status: task.status
     });
     
     return isMyTaskResult && isPending && isDueRelevant;
   });
 
-  console.log('My pending tasks:', myPendingTasks);
+  console.log('My pending tasks result:', myPendingTasks);
+  console.log('My pending tasks count:', myPendingTasks.length);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
