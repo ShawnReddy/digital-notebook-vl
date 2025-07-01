@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Building, Phone, Mail, MapPin, Target, TrendingUp, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2 } from 'lucide-react';
+import { Search, Filter, Building, Phone, Mail, MapPin, Target, TrendingUp, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import TaskModal from '@/components/TaskModal';
 
 interface Contact {
   id: string;
@@ -57,6 +58,8 @@ const MHA = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isResearching, setIsResearching] = useState(false);
   const [researchData, setResearchData] = useState<string | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [taskPreset, setTaskPreset] = useState<{company: string, person: string} | null>(null);
   const { toast } = useToast();
   
   const [mhaAccounts, setMhaAccounts] = useState<MHAAccount[]>([
@@ -293,6 +296,23 @@ Competitive landscape analysis shows we have a significant advantage due to our 
     }, 2000);
   };
 
+  const handleAddTask = (contact: Contact, company: string) => {
+    setTaskPreset({
+      company: company,
+      person: contact.name
+    });
+    setIsTaskModalOpen(true);
+  };
+
+  const handleTaskSave = (taskData: any) => {
+    toast({
+      title: "Task Created",
+      description: `Task has been created and assigned to ${taskData.assignee}`,
+    });
+    setIsTaskModalOpen(false);
+    setTaskPreset(null);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -487,8 +507,17 @@ Competitive landscape analysis shows we have a significant advantage due to our 
       <Dialog open={isInteractionModalOpen} onOpenChange={setIsInteractionModalOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
-              Interaction History - {selectedContact?.name}
+            <DialogTitle className="text-2xl font-bold flex items-center justify-between">
+              <span>Interaction History - {selectedContact?.name}</span>
+              {selectedContact && selectedCompany && (
+                <Button
+                  onClick={() => handleAddTask(selectedContact, selectedCompany.organization)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Task
+                </Button>
+              )}
             </DialogTitle>
           </DialogHeader>
           
@@ -533,6 +562,18 @@ Competitive landscape analysis shows we have a significant advantage due to our 
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Task Modal */}
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setTaskPreset(null);
+        }}
+        onSave={handleTaskSave}
+        task={null}
+        preset={taskPreset}
+      />
     </div>
   );
 };

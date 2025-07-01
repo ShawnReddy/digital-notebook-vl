@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { Search, Filter, Clock, Phone, Mail, MapPin, Users, MessageSquare, PhoneCall, Calendar, FileText } from 'lucide-react';
+import { Search, Filter, AlertTriangle, Phone, Mail, MapPin, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import BriefModal from '@/components/BriefModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import TaskModal from '@/components/TaskModal';
 
 interface Contact {
   id: string;
@@ -32,13 +32,12 @@ interface InteractionHistory {
 interface InactiveClient {
   id: string;
   name: string;
-  company: string;
+  industry: string;
   email: string;
   phone: string;
   location: string;
-  lastRevenue: string;
-  inactiveSince: string;
-  reason: 'contract-ended' | 'non-payment' | 'merger' | 'budget-cuts';
+  lastEngagement: string;
+  reasonInactive: string;
   selected: boolean;
   contacts: Contact[];
 }
@@ -53,110 +52,116 @@ interface Meeting {
 
 const InactiveClients = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [reasonFilter, setReasonFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
-  const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
-  const [selectedClientForBrief, setSelectedClientForBrief] = useState<Meeting | null>(null);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<InactiveClient | null>(null);
   const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [isResearching, setIsResearching] = useState(false);
+  const [researchData, setResearchData] = useState<string | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [taskPreset, setTaskPreset] = useState<{company: string, person: string} | null>(null);
   const { toast } = useToast();
   
   const [inactiveClients, setInactiveClients] = useState<InactiveClient[]>([
     {
       id: '1',
-      name: 'David Park',
-      company: 'Legacy Systems Corp',
-      email: 'd.park@legacysys.com',
-      phone: '+1 (555) 678-9012',
-      location: 'Portland, OR',
-      lastRevenue: '$120K',
-      inactiveSince: '2024-10-15',
-      reason: 'contract-ended',
+      name: 'Acme Corp',
+      industry: 'Manufacturing',
+      email: 'info@acme.com',
+      phone: '+1 (555) 111-2222',
+      location: 'Los Angeles, CA',
+      lastEngagement: '2023-05-15',
+      reasonInactive: 'Budget cuts',
       selected: false,
       contacts: [
         {
           id: '1a',
-          name: 'David Park',
-          title: 'Former IT Director',
-          email: 'd.park@legacysys.com',
-          phone: '+1 (555) 678-9012',
-          lastContact: '2024-10-15'
+          name: 'John Doe',
+          title: 'CEO',
+          email: 'john.doe@acme.com',
+          phone: '+1 (555) 111-2222',
+          lastContact: '2023-05-15'
+        },
+        {
+          id: '1b',
+          name: 'Jane Smith',
+          title: 'CFO',
+          email: 'jane.smith@acme.com',
+          phone: '+1 (555) 111-2223',
+          lastContact: '2023-05-10'
         }
       ]
     },
     {
       id: '2',
-      name: 'Jennifer Lee',
-      company: 'Sunset Industries',
-      email: 'j.lee@sunset-ind.com',
-      phone: '+1 (555) 789-0123',
-      location: 'Phoenix, AZ',
-      lastRevenue: '$85K',
-      inactiveSince: '2024-09-30',
-      reason: 'budget-cuts',
+      name: 'Beta Industries',
+      industry: 'Technology',
+      email: 'contact@beta.com',
+      phone: '+1 (555) 333-4444',
+      location: 'San Francisco, CA',
+      lastEngagement: '2023-08-20',
+      reasonInactive: 'Switched to competitor',
       selected: false,
       contacts: [
         {
           id: '2a',
-          name: 'Jennifer Lee',
-          title: 'Former Operations Manager',
-          email: 'j.lee@sunset-ind.com',
-          phone: '+1 (555) 789-0123',
-          lastContact: '2024-09-30'
-        },
-        {
-          id: '2b',
-          name: 'Tom Wilson',
-          title: 'Finance Director',
-          email: 't.wilson@sunset-ind.com',
-          phone: '+1 (555) 789-0124',
-          lastContact: '2024-09-25'
+          name: 'Alice Johnson',
+          title: 'CTO',
+          email: 'alice.johnson@beta.com',
+          phone: '+1 (555) 333-4444',
+          lastContact: '2023-08-20'
         }
       ]
     },
     {
       id: '3',
-      name: 'Mark Johnson',
-      company: 'Consolidated Group',
-      email: 'm.johnson@consolidated.com',
-      phone: '+1 (555) 890-1234',
-      location: 'Detroit, MI',
-      lastRevenue: '$200K',
-      inactiveSince: '2024-08-22',
-      reason: 'merger',
+      name: 'Gamma Solutions',
+      industry: 'Consulting',
+      email: 'info@gamma.com',
+      phone: '+1 (555) 555-6666',
+      location: 'New York, NY',
+      lastEngagement: '2023-11-01',
+      reasonInactive: 'Project completed',
       selected: false,
       contacts: [
         {
           id: '3a',
-          name: 'Mark Johnson',
-          title: 'Former Director of Operations',
-          email: 'm.johnson@consolidated.com',
-          phone: '+1 (555) 890-1234',
-          lastContact: '2024-08-22'
+          name: 'Bob Williams',
+          title: 'Project Manager',
+          email: 'bob.williams@gamma.com',
+          phone: '+1 (555) 555-6666',
+          lastContact: '2023-11-01'
+        },
+        {
+          id: '3b',
+          name: 'Charlie Brown',
+          title: 'Consultant',
+          email: 'charlie.brown@gamma.com',
+          phone: '+1 (555) 555-6667',
+          lastContact: '2023-10-25'
         }
       ]
     },
     {
       id: '4',
-      name: 'Patricia White',
-      company: 'Downtown Ventures',
-      email: 'p.white@downtown-v.com',
-      phone: '+1 (555) 901-2345',
-      location: 'Nashville, TN',
-      lastRevenue: '$95K',
-      inactiveSince: '2024-11-10',
-      reason: 'non-payment',
+      name: 'Delta Corp',
+      industry: 'Finance',
+      email: 'info@delta.com',
+      phone: '+1 (555) 777-8888',
+      location: 'Chicago, IL',
+      lastEngagement: '2024-01-10',
+      reasonInactive: 'Reorganization',
       selected: false,
       contacts: [
         {
           id: '4a',
-          name: 'Patricia White',
-          title: 'Former Account Manager',
-          email: 'p.white@downtown-v.com',
-          phone: '+1 (555) 901-2345',
-          lastContact: '2024-11-10'
+          name: 'Eve Davis',
+          title: 'Finance Director',
+          email: 'eve.davis@delta.com',
+          phone: '+1 (555) 777-8888',
+          lastContact: '2024-01-10'
         }
       ]
     }
@@ -168,41 +173,49 @@ const InactiveClients = () => {
       {
         id: '1',
         type: 'email',
-        date: '2024-10-15',
-        time: '2:30 PM',
-        subject: 'Contract Non-Renewal Notice',
-        content: 'Received formal notice of contract non-renewal. Client cited budget constraints and internal restructuring.',
-        contact: 'David Park'
+        date: '2023-05-15',
+        time: '9:00 AM',
+        subject: 'Initial Contact',
+        content: 'Initial email sent to introduce our services.',
+        contact: 'John Doe'
       },
       {
         id: '2',
         type: 'call',
-        date: '2024-10-10',
-        time: '11:45 AM',
-        subject: 'Final Status Call',
-        content: 'Attempted to discuss renewal options. Client confirmed decision to discontinue services.',
-        contact: 'David Park'
+        date: '2023-05-10',
+        time: '2:00 PM',
+        subject: 'Follow-up Call',
+        content: 'Follow-up call to discuss potential partnership.',
+        contact: 'Jane Smith'
       },
       {
         id: '3',
-        type: 'meeting',
-        date: '2024-09-28',
-        time: '3:00 PM',
-        subject: 'Contract Review Meeting',
-        content: 'Discussed contract terms and potential modifications. Client expressed concerns about ROI.',
-        contact: 'David Park'
-      },
-      {
-        id: '4',
         type: 'note',
-        date: '2024-09-25',
-        time: '4:15 PM',
-        subject: 'Account Status',
-        content: 'Client relationship showing signs of strain. Budget pressures evident. Consider retention strategies.',
+        date: '2023-05-01',
+        time: '4:00 PM',
+        subject: 'Internal Note',
+        content: 'Client expressed interest but cited budget constraints.',
         contact: 'Internal'
       }
     ];
     return mockHistory;
+  };
+
+  const handleAddTask = (contact: Contact, company: string) => {
+    setTaskPreset({
+      company: company,
+      person: contact.name
+    });
+    setIsTaskModalOpen(true);
+  };
+
+  const handleTaskSave = (taskData: any) => {
+    toast({
+      title: "Task Created",
+      description: `Task has been created and assigned to ${taskData.assignee}`,
+    });
+    setIsTaskModalOpen(false);
+    setTaskPreset(null);
   };
 
   const handleClientSelect = (clientId: string) => {
@@ -211,12 +224,12 @@ const InactiveClients = () => {
     ));
   };
 
-  const handleReactivate = () => {
+  const handleReactivateClients = () => {
     const selectedClients = inactiveClients.filter(c => c.selected);
     if (selectedClients.length > 0) {
       toast({
-        title: "Reactivation Started",
-        description: `${selectedClients.length} client${selectedClients.length > 1 ? 's' : ''} marked for reactivation.`,
+        title: "Clients Reactivated",
+        description: `${selectedClients.length} client${selectedClients.length > 1 ? 's' : ''} have been marked for reactivation.`,
       });
       setInactiveClients(inactiveClients.map(client => ({ ...client, selected: false })));
     }
@@ -230,41 +243,6 @@ const InactiveClients = () => {
   const handleContactClick = (contact: Contact) => {
     setSelectedContact(contact);
     setIsInteractionModalOpen(true);
-  };
-
-  const handleDeepResearch = () => {
-    if (selectedCompany) {
-      const meetingData: Meeting = {
-        id: selectedCompany.id,
-        title: `Inactive Client Brief - ${selectedCompany.company}`,
-        client: selectedCompany.company,
-        time: 'Current',
-        type: 'meeting'
-      };
-      setSelectedClientForBrief(meetingData);
-      setIsBriefModalOpen(true);
-      setIsCompanyModalOpen(false);
-    }
-  };
-
-  const getReasonColor = (reason: string) => {
-    switch (reason) {
-      case 'contract-ended': return 'bg-blue-100 text-blue-800';
-      case 'non-payment': return 'bg-red-100 text-red-800';
-      case 'merger': return 'bg-purple-100 text-purple-800';
-      case 'budget-cuts': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getReasonText = (reason: string) => {
-    switch (reason) {
-      case 'contract-ended': return 'Contract Ended';
-      case 'non-payment': return 'Non-Payment';
-      case 'merger': return 'Merger/Acquisition';
-      case 'budget-cuts': return 'Budget Cuts';
-      default: return reason;
-    }
   };
 
   const getInteractionIcon = (type: string) => {
@@ -288,9 +266,9 @@ const InactiveClients = () => {
   };
 
   const filteredClients = inactiveClients.filter(client => {
-    const matchesSearch = client.company.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesReason = reasonFilter === 'all' || client.reason === reasonFilter;
-    return matchesSearch && matchesReason;
+    const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || client.reasonInactive === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
   const selectedCount = inactiveClients.filter(c => c.selected).length;
@@ -299,7 +277,7 @@ const InactiveClients = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Inactive Clients</h1>
-        <p className="text-gray-600">Review past client relationships and identify re-engagement opportunities.</p>
+        <p className="text-gray-600">Re-engage with clients who have previously been inactive.</p>
       </div>
 
       {/* Search and Filters */}
@@ -325,9 +303,9 @@ const InactiveClients = () => {
           {selectedCount > 0 && (
             <Button 
               className="bg-blue-600 hover:bg-blue-700"
-              onClick={handleReactivate}
+              onClick={handleReactivateClients}
             >
-              Reactivate {selectedCount} Client{selectedCount > 1 ? 's' : ''}
+              Mark {selectedCount} for Reactivation
             </Button>
           )}
         </div>
@@ -335,17 +313,17 @@ const InactiveClients = () => {
         {showFilters && (
           <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Reason:</label>
-              <Select value={reasonFilter} onValueChange={setReasonFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
+              <label className="text-sm font-medium text-gray-700">Reason Inactive:</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="All Reasons" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="contract-ended">Contract Ended</SelectItem>
-                  <SelectItem value="non-payment">Non-Payment</SelectItem>
-                  <SelectItem value="merger">Merger/Acquisition</SelectItem>
-                  <SelectItem value="budget-cuts">Budget Cuts</SelectItem>
+                  <SelectItem value="all">All Reasons</SelectItem>
+                  <SelectItem value="Budget cuts">Budget cuts</SelectItem>
+                  <SelectItem value="Switched to competitor">Switched to competitor</SelectItem>
+                  <SelectItem value="Project completed">Project completed</SelectItem>
+                  <SelectItem value="Reorganization">Reorganization</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -358,7 +336,7 @@ const InactiveClients = () => {
         {filteredClients.map((client) => (
           <Card 
             key={client.id} 
-            className="hover:shadow-lg transition-shadow duration-200 border-gray-200 cursor-pointer"
+            className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
             onClick={() => handleClientClick(client)}
           >
             <CardHeader className="pb-3">
@@ -370,16 +348,17 @@ const InactiveClients = () => {
                     onClick={(e) => e.stopPropagation()}
                   />
                   <div>
-                    <CardTitle className="text-lg font-bold text-gray-700">{client.company}</CardTitle>
+                    <CardTitle className="text-lg font-bold">{client.name}</CardTitle>
                     <p className="text-sm text-gray-600 flex items-center">
                       <Users className="w-3 h-3 mr-1" />
                       {client.contacts.length} contact{client.contacts.length !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${getReasonColor(client.reason)}`}>
-                  {getReasonText(client.reason)}
-                </span>
+                <Badge variant="secondary">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  Inactive
+                </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -389,15 +368,12 @@ const InactiveClients = () => {
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-gray-100">
                 <div>
-                  <p className="text-sm text-gray-500">Last Revenue</p>
-                  <p className="font-semibold text-gray-600">{client.lastRevenue}</p>
+                  <p className="text-sm text-gray-500">Industry</p>
+                  <p className="font-semibold">{client.industry}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500 flex items-center">
-                    <Clock className="w-3 h-3 mr-1" />
-                    Inactive Since
-                  </p>
-                  <p className="text-sm font-medium">{new Date(client.inactiveSince).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-500">Last Engagement</p>
+                  <p className="text-sm font-medium">{new Date(client.lastEngagement).toLocaleDateString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -415,15 +391,11 @@ const InactiveClients = () => {
       <Dialog open={isCompanyModalOpen} onOpenChange={setIsCompanyModalOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">{selectedCompany?.company}</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">{selectedCompany?.name}</DialogTitle>
           </DialogHeader>
           
           {selectedCompany && (
             <div className="space-y-6">
-              <Button onClick={handleDeepResearch} className="w-full bg-blue-600 hover:bg-blue-700">
-                Deep Research
-              </Button>
-              
               <div>
                 <h3 className="text-lg font-semibold mb-4">Company Contacts</h3>
                 <p className="text-sm text-gray-500 mb-4">
@@ -469,8 +441,17 @@ const InactiveClients = () => {
       <Dialog open={isInteractionModalOpen} onOpenChange={setIsInteractionModalOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
-              Interaction History - {selectedContact?.name}
+            <DialogTitle className="text-2xl font-bold flex items-center justify-between">
+              <span>Interaction History - {selectedContact?.name}</span>
+              {selectedContact && selectedCompany && (
+                <Button
+                  onClick={() => handleAddTask(selectedContact, selectedCompany.name)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Task
+                </Button>
+              )}
             </DialogTitle>
           </DialogHeader>
           
@@ -516,13 +497,16 @@ const InactiveClients = () => {
         </DialogContent>
       </Dialog>
 
-      <BriefModal
-        isOpen={isBriefModalOpen}
+      {/* Task Modal */}
+      <TaskModal
+        isOpen={isTaskModalOpen}
         onClose={() => {
-          setIsBriefModalOpen(false);
-          setSelectedClientForBrief(null);
+          setIsTaskModalOpen(false);
+          setTaskPreset(null);
         }}
-        meeting={selectedClientForBrief}
+        onSave={handleTaskSave}
+        task={null}
+        preset={taskPreset}
       />
     </div>
   );

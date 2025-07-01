@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Star, Phone, Mail, MapPin, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2 } from 'lucide-react';
+import { Search, Filter, Star, Phone, Mail, MapPin, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import TaskModal from '@/components/TaskModal';
 
 interface Contact {
   id: string;
@@ -60,6 +61,8 @@ const Clients = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isResearching, setIsResearching] = useState(false);
   const [researchData, setResearchData] = useState<string | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [taskPreset, setTaskPreset] = useState<{company: string, person: string} | null>(null);
   const { toast } = useToast();
   
   const [clients, setClients] = useState<Client[]>([
@@ -269,6 +272,24 @@ Our analysis shows they are an ideal client for our services with high potential
       setResearchData(mockResearchData);
       setIsResearching(false);
     }, 2000);
+  };
+
+  const handleAddTask = (contact: Contact, company: string) => {
+    setTaskPreset({
+      company: company,
+      person: contact.name
+    });
+    setIsTaskModalOpen(true);
+  };
+
+  const handleTaskSave = (taskData: any) => {
+    // This would integrate with your existing task management system
+    toast({
+      title: "Task Created",
+      description: `Task has been created and assigned to ${taskData.assignee}`,
+    });
+    setIsTaskModalOpen(false);
+    setTaskPreset(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -518,8 +539,17 @@ Our analysis shows they are an ideal client for our services with high potential
       <Dialog open={isInteractionModalOpen} onOpenChange={setIsInteractionModalOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
-              Interaction History - {selectedContact?.name}
+            <DialogTitle className="text-2xl font-bold flex items-center justify-between">
+              <span>Interaction History - {selectedContact?.name}</span>
+              {selectedContact && selectedCompany && (
+                <Button
+                  onClick={() => handleAddTask(selectedContact, selectedCompany.company)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Task
+                </Button>
+              )}
             </DialogTitle>
           </DialogHeader>
           
@@ -564,6 +594,18 @@ Our analysis shows they are an ideal client for our services with high potential
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Task Modal */}
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setTaskPreset(null);
+        }}
+        onSave={handleTaskSave}
+        task={null}
+        preset={taskPreset}
+      />
     </div>
   );
 };

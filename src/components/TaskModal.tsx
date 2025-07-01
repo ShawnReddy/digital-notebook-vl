@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,9 +12,13 @@ interface TaskModalProps {
   onClose: () => void;
   onSave: (task: Omit<Task, 'id'>) => void;
   task?: Task | null;
+  preset?: {
+    company: string;
+    person: string;
+  } | null;
 }
 
-const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) => {
+const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, preset }) => {
   const [formData, setFormData] = useState<{
     title: string;
     assignee: string;
@@ -81,6 +84,23 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) 
         source: task.source,
         clientType: task.clientType
       });
+    } else if (preset) {
+      setFormData({
+        title: '',
+        assignee: '',
+        dueDate: '',
+        dueTime: '',
+        priority: 'medium',
+        status: 'pending',
+        category: 'today',
+        tag: {
+          type: 'person',
+          name: preset.person,
+          company: preset.company
+        },
+        source: 'manual',
+        clientType: 'clients'
+      });
     } else {
       setFormData({
         title: '',
@@ -98,7 +118,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) 
         clientType: 'clients'
       });
     }
-  }, [task, isOpen]);
+  }, [task, preset, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -350,6 +370,14 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task }) 
               </Select>
             </div>
           </div>
+
+          {preset && (
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-700">
+                <strong>Auto-tagged to:</strong> {preset.person} ({preset.company})
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-3 pt-6 border-t border-slate-200">
             <Button 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, TrendingUp, Phone, Mail, MapPin, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2 } from 'lucide-react';
+import { Search, Filter, TrendingUp, Phone, Mail, MapPin, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import TaskModal from '@/components/TaskModal';
 
 interface Contact {
   id: string;
@@ -52,7 +53,7 @@ interface Meeting {
 
 const Prospects = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [stageFilter, setStageFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Prospect | null>(null);
@@ -60,6 +61,8 @@ const Prospects = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [isResearching, setIsResearching] = useState(false);
   const [researchData, setResearchData] = useState<string | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [taskPreset, setTaskPreset] = useState<{company: string, person: string} | null>(null);
   const { toast } = useToast();
   
   const [prospects, setProspects] = useState<Prospect[]>([
@@ -264,6 +267,23 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
     }, 2000);
   };
 
+  const handleAddTask = (contact: Contact, company: string) => {
+    setTaskPreset({
+      company: company,
+      person: contact.name
+    });
+    setIsTaskModalOpen(true);
+  };
+
+  const handleTaskSave = (taskData: any) => {
+    toast({
+      title: "Task Created",
+      description: `Task has been created and assigned to ${taskData.assignee}`,
+    });
+    setIsTaskModalOpen(false);
+    setTaskPreset(null);
+  };
+
   const getStageColor = (stage: string) => {
     switch (stage) {
       case 'hot': return 'bg-red-100 text-red-800';
@@ -295,7 +315,7 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
 
   const filteredProspects = prospects.filter(prospect => {
     const matchesSearch = prospect.company.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStage = stageFilter === 'all' || prospect.stage === stageFilter;
+    const matchesStage = statusFilter === 'all' || prospect.stage === statusFilter;
     return matchesSearch && matchesStage;
   });
 
@@ -342,7 +362,7 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
           <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-2">
               <label className="text-sm font-medium text-gray-700">Stage:</label>
-              <Select value={stageFilter} onValueChange={setStageFilter}>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
@@ -514,8 +534,17 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
       <Dialog open={isInteractionModalOpen} onOpenChange={setIsInteractionModalOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
-              Interaction History - {selectedContact?.name}
+            <DialogTitle className="text-2xl font-bold flex items-center justify-between">
+              <span>Interaction History - {selectedContact?.name}</span>
+              {selectedContact && selectedCompany && (
+                <Button
+                  onClick={() => handleAddTask(selectedContact, selectedCompany.company)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Task
+                </Button>
+              )}
             </DialogTitle>
           </DialogHeader>
           
@@ -560,6 +589,18 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Task Modal */}
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setTaskPreset(null);
+        }}
+        onSave={handleTaskSave}
+        task={null}
+        preset={taskPreset}
+      />
     </div>
   );
 };
