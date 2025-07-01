@@ -17,7 +17,7 @@ const DashboardHeader: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 mb-3">Hello, {firstName}</h1>
-          <p className="text-lg text-slate-600">Here's what's happening today - stay on top of your goals.</p>
+          <p className="text-lg text-slate-600">Welcome to Digital Notebook - stay on top of your goals.</p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="text-right">

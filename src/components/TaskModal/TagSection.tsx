@@ -269,7 +269,7 @@ const TagSection: React.FC<TagSectionProps> = ({
           {selectedClientType && availableCompanies.length > 0 && (
             <Select value={selectedCompany} onValueChange={handleCompanyChange}>
               <SelectTrigger className="h-12 border-slate-200 bg-white">
-                <SelectValue placeholder="Select company" />
+                <SelectValue placeholder="Select account" />
               </SelectTrigger>
               <SelectContent className="bg-white border-slate-200 z-50">
                 {availableCompanies.map((company) => (
@@ -284,7 +284,7 @@ const TagSection: React.FC<TagSectionProps> = ({
           {tag.type === 'person' && selectedCompany && availablePeople.length > 0 && (
             <Select value={tag.name} onValueChange={handlePersonSelection}>
               <SelectTrigger className="h-12 border-slate-200 bg-white">
-                <SelectValue placeholder="Select person" />
+                <SelectValue placeholder="Select contact" />
               </SelectTrigger>
               <SelectContent className="bg-white border-slate-200 z-50">
                 {availablePeople.map((person) => (
