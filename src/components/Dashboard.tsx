@@ -6,6 +6,7 @@ import PersonalTaskModal from './PersonalTaskModal';
 import StatsOverview from './StatsOverview';
 import TodaysSchedule from './TodaysSchedule';
 import TaskManagementPane from './TaskManagementPane';
+import TaskBreakdownModal from './TaskBreakdownModal';
 
 interface Meeting {
   id: string;
@@ -20,6 +21,7 @@ interface Task {
   title: string;
   assignee: string;
   dueDate: string;
+  dueTime: string;
   priority: 'high' | 'medium' | 'low';
   status: 'pending' | 'completed';
   category: 'today' | 'week' | 'overdue';
@@ -39,6 +41,7 @@ const Dashboard = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isPersonalTaskModalOpen, setIsPersonalTaskModalOpen] = useState(false);
   const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
+  const [isTaskBreakdownOpen, setIsTaskBreakdownOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingPersonalTask, setEditingPersonalTask] = useState<PersonalTask | null>(null);
@@ -95,6 +98,65 @@ const Dashboard = () => {
       client: 'New Prospect Inc.',
       time: '4:00 PM',
       type: 'call'
+    }
+  ];
+
+  // Enhanced task data with client information for breakdown
+  const enhancedTasks = [
+    {
+      id: '1',
+      title: 'Follow up with ABC Corp proposal',
+      assignee: 'John Smith',
+      dueDate: '2024-12-30',
+      dueTime: '10:00 AM',
+      priority: 'high' as const,
+      status: 'pending' as const,
+      clientType: 'clients' as const,
+      clientName: 'ABC Corporation'
+    },
+    {
+      id: '2',
+      title: 'Prepare demo for XYZ Solutions',
+      assignee: 'Sarah Johnson',
+      dueDate: '2024-12-31',
+      dueTime: '2:30 PM',
+      priority: 'medium' as const,
+      status: 'pending' as const,
+      clientType: 'prospects' as const,
+      clientName: 'XYZ Solutions Ltd'
+    },
+    {
+      id: '3',
+      title: 'Send contract to DEF Industries',
+      assignee: 'Mike Davis',
+      dueDate: '2024-12-28',
+      dueTime: '11:15 AM',
+      priority: 'high' as const,
+      status: 'pending' as const,
+      clientType: 'inactive' as const,
+      clientName: 'DEF Industries'
+    },
+    {
+      id: '4',
+      title: 'Review MHA compliance documents',
+      assignee: 'Emily Chen',
+      dueDate: '2024-12-30',
+      dueTime: '3:45 PM',
+      priority: 'medium' as const,
+      status: 'pending' as const,
+      clientType: 'mha' as const,
+      clientName: 'MHA Regional Office'
+    },
+    {
+      id: '5',
+      title: 'Schedule quarterly review meeting',
+      assignee: 'David Wilson',
+      dueDate: '2024-12-29',
+      dueTime: '9:30 AM',
+      priority: 'low' as const,
+      status: 'pending' as const,
+      clientType: 'clients' as const,
+      clientName: 'Global Tech Solutions'
     }
   ];
 
@@ -174,7 +236,8 @@ const Dashboard = () => {
         {/* Stats Overview */}
         <StatsOverview
           meetingsCount={meetings.length}
-          pendingTasksCount={tasks.filter(t => t.status === 'pending').length}
+          pendingTasksCount={enhancedTasks.filter(t => t.status === 'pending').length}
+          onPendingTasksClick={() => setIsTaskBreakdownOpen(true)}
         />
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
@@ -216,6 +279,12 @@ const Dashboard = () => {
             setSelectedMeeting(null);
           }}
           meeting={selectedMeeting}
+        />
+
+        <TaskBreakdownModal
+          isOpen={isTaskBreakdownOpen}
+          onClose={() => setIsTaskBreakdownOpen(false)}
+          tasks={enhancedTasks.filter(t => t.status === 'pending')}
         />
       </div>
     </div>
