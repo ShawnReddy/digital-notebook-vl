@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Users, User, Clock, Flag, Calendar, Info, Building, Check } from 'lucide-react';
+import { Plus, Users, User, Clock, Flag, Calendar, Info, Building, Check, Edit3 } from 'lucide-react';
 import { getTasksByDate, getTeamTasks, getMyTasks, type Task } from '@/data/taskData';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -14,6 +14,7 @@ interface TaskManagementPaneProps {
   onAddManualTask: () => void;
   onAddTaskFromClient: (preset: { company: string; person: string }) => void;
   onTaskComplete: (taskId: string) => void;
+  onEditTask: (task: Task) => void;
   isMyTask: (task: Task) => boolean;
 }
 
@@ -23,6 +24,7 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({
   onAddManualTask,
   onAddTaskFromClient,
   onTaskComplete,
+  onEditTask,
   isMyTask
 }) => {
   const { userProfile } = useAuth();
@@ -115,6 +117,14 @@ const TaskManagementPane: React.FC<TaskManagementPaneProps> = ({
                 {getPriorityIcon(task.priority)}
                 <span className="capitalize">{task.priority}</span>
               </Badge>
+              <Button
+                onClick={() => onEditTask(task)}
+                size="sm"
+                variant="outline"
+                className="h-8 w-8 p-0 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Edit3 className="w-4 h-4" />
+              </Button>
               {isMyTask(task) && (
                 <Button
                   onClick={() => onTaskComplete(task.id)}
