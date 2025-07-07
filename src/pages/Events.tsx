@@ -1,253 +1,193 @@
 import React, { useState } from 'react';
-import { Search, Filter, Calendar, MapPin, Users, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useTaskContext } from '@/contexts/TaskContext';
+import { type Task } from '@/data/taskData';
 
 interface Event {
   id: string;
   title: string;
-  type: 'conference' | 'webinar' | 'meeting' | 'workshop';
   date: string;
   time: string;
   location: string;
+  type: 'conference' | 'meeting' | 'webinar' | 'workshop';
   attendees: number;
-  description: string;
-  status: 'upcoming' | 'in-progress' | 'completed';
+  status: 'upcoming' | 'ongoing' | 'completed';
   selected: boolean;
 }
 
 const Events = () => {
+  const { handleTaskSave } = useTaskContext();
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
-  const { toast } = useToast();
+  const [selectedCount, setSelectedCount] = useState(0);
+  
   const [events, setEvents] = useState<Event[]>([
     {
       id: '1',
-      title: 'Q1 Sales Strategy Conference',
+      title: 'Annual Client Conference',
+      date: '2025-02-15',
+      time: '9:00 AM - 5:00 PM',
+      location: 'Convention Center, New York',
       type: 'conference',
-      date: '2025-01-15',
-      time: '09:00 AM',
-      location: 'New York Convention Center',
       attendees: 150,
-      description: 'Annual sales strategy planning and team alignment.',
       status: 'upcoming',
       selected: false
     },
     {
       id: '2',
-      title: 'Product Demo Webinar',
-      type: 'webinar',
-      date: '2025-01-05',
-      time: '02:00 PM',
-      location: 'Virtual - Zoom',
-      attendees: 45,
-      description: 'Interactive product demonstration for prospects.',
+      title: 'Q1 Strategy Meeting',
+      date: '2025-01-20',
+      time: '2:00 PM - 4:00 PM',
+      location: 'Main Office',
+      type: 'meeting',
+      attendees: 25,
       status: 'upcoming',
       selected: false
     },
     {
       id: '3',
-      title: 'Client Success Workshop',
-      type: 'workshop',
-      date: '2024-12-28',
-      time: '10:30 AM',
-      location: 'Company HQ - Conference Room A',
-      attendees: 25,
-      description: 'Best practices for client relationship management.',
-      status: 'completed',
+      title: 'Product Demo Webinar',
+      date: '2025-01-10',
+      time: '1:00 PM - 2:30 PM',
+      location: 'Virtual',
+      type: 'webinar',
+      attendees: 75,
+      status: 'upcoming',
       selected: false
     },
     {
       id: '4',
-      title: 'Healthcare Industry Summit',
-      type: 'conference',
-      date: '2025-02-20',
-      time: '08:00 AM',
-      location: 'Chicago Medical Center',
-      attendees: 200,
-      description: 'Annual healthcare industry networking event.',
-      status: 'upcoming',
+      title: 'Team Training Workshop',
+      date: '2024-12-15',
+      time: '10:00 AM - 3:00 PM',
+      location: 'Training Room A',
+      type: 'workshop',
+      attendees: 30,
+      status: 'completed',
       selected: false
     }
   ]);
 
   const handleEventSelect = (eventId: string) => {
-    setEvents(events.map(event => 
-      event.id === eventId ? { ...event, selected: !event.selected } : event
-    ));
-  };
-
-  const handleAddToDashboard = () => {
-    const selectedEvents = events.filter(e => e.selected);
-    if (selectedEvents.length > 0) {
-      toast({
-        title: "Added to Dashboard",
-        description: `${selectedEvents.length} event${selectedEvents.length > 1 ? 's' : ''} added to your dashboard.`,
-      });
-      // Clear selections after adding
-      setEvents(events.map(event => ({ ...event, selected: false })));
-    }
+    setEvents(events => 
+      events.map(event => 
+        event.id === eventId 
+          ? { ...event, selected: !event.selected }
+          : event
+      )
+    );
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'upcoming': return 'bg-blue-100 text-blue-800';
-      case 'in-progress': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'upcoming': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'ongoing': return 'bg-green-100 text-green-800 border-green-300';
+      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
-  const getTypeIcon = (type: string) => {
+  const getTypeColor = (type: string) => {
     switch (type) {
-      case 'conference': return '🏢';
-      case 'webinar': return '💻';
-      case 'meeting': return '🤝';
-      case 'workshop': return '📚';
-      default: return '📅';
+      case 'conference': return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'meeting': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'webinar': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'workshop': return 'bg-green-100 text-green-800 border-green-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
   const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'all' || event.type === typeFilter;
+    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || event.status === statusFilter;
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesStatus;
   });
 
-  const selectedCount = events.filter(e => e.selected).length;
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Events</h1>
-        <p className="text-gray-600">Track conferences, meetings, and networking events.</p>
+    <div>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Events</h1>
+        <p className="text-sm text-gray-600">Manage company events and meetings.</p>
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search events..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button 
-            variant="outline" 
-            className="flex items-center"
+      <div className="mb-4">
+        <div className="flex gap-2 mb-2">
+          <input
+            type="text"
+            placeholder="Search events..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 px-3 py-1 border border-gray-300"
+          />
+          <button 
+            className="px-3 py-1 border border-gray-300 bg-white hover:bg-gray-50"
             onClick={() => setShowFilters(!showFilters)}
           >
-            <Filter className="w-4 h-4 mr-2" />
             Filter
-          </Button>
-          {selectedCount > 0 && (
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={handleAddToDashboard}
-            >
-              Add {selectedCount} to Dashboard
-            </Button>
-          )}
+          </button>
         </div>
 
         {showFilters && (
-          <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Type:</label>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="conference">Conference</SelectItem>
-                  <SelectItem value="webinar">Webinar</SelectItem>
-                  <SelectItem value="meeting">Meeting</SelectItem>
-                  <SelectItem value="workshop">Workshop</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Status:</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="upcoming">Upcoming</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="p-3 bg-gray-100 border border-gray-300 mb-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm">Status:</label>
+              <select 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-2 py-1 border border-gray-300"
+              >
+                <option value="all">All</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+              </select>
             </div>
           </div>
         )}
       </div>
 
-      {/* Events Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Events List */}
+      <div className="space-y-2">
         {filteredEvents.map((event) => (
-          <Card key={event.id} className="hover:shadow-lg transition-shadow duration-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    checked={event.selected}
-                    onCheckedChange={() => handleEventSelect(event.id)}
-                  />
-                  <div>
-                    <CardTitle className="text-lg flex items-center">
-                      <span className="text-xl mr-2">{getTypeIcon(event.type)}</span>
-                      {event.title}
-                    </CardTitle>
-                    <p className="text-sm text-gray-600 capitalize">{event.type}</p>
-                  </div>
+          <div 
+            key={event.id} 
+            className="border border-gray-300 p-3"
+          >
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={event.selected}
+                  onChange={() => handleEventSelect(event.id)}
+                />
+                <div>
+                  <h3 className="font-semibold text-gray-900">{event.title}</h3>
+                  <p className="text-sm text-gray-600">{event.location}</p>
                 </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(event.status)}`}>
-                  {event.status.replace('-', ' ')}
+              </div>
+              <div className="flex gap-1">
+                <span className={`px-2 py-1 text-xs ${getTypeColor(event.type)}`}>
+                  {event.type}
+                </span>
+                <span className={`px-2 py-1 text-xs ${getStatusColor(event.status)}`}>
+                  {event.status}
                 </span>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center text-sm text-gray-600">
-                <Calendar className="w-4 h-4 mr-2" />
-                {new Date(event.date).toLocaleDateString()}
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Clock className="w-4 h-4 mr-2" />
-                {event.time}
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="w-4 h-4 mr-2" />
-                {event.location}
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Users className="w-4 h-4 mr-2" />
-                {event.attendees} attendees
-              </div>
-              <div className="pt-3 border-t border-gray-100">
-                <p className="text-sm text-gray-600">{event.description}</p>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Date: {new Date(event.date).toLocaleDateString()}</span>
+              <span>Time: {event.time}</span>
+              <span>Attendees: {event.attendees}</span>
+            </div>
+          </div>
         ))}
       </div>
 
       {filteredEvents.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">No events found matching your search.</p>
+        <div className="text-center py-4">
+          <p className="text-gray-500">No events found.</p>
         </div>
       )}
     </div>

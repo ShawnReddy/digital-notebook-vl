@@ -1,583 +1,182 @@
 import React, { useState } from 'react';
-import { Search, Filter, Building, Phone, Mail, MapPin, Target, TrendingUp, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import TaskModal from '@/components/TaskModal';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { type Task } from '@/data/taskData';
 
-interface Contact {
+interface MHAOffice {
   id: string;
   name: string;
-  title: string;
-  email: string;
-  phone: string;
-  lastContact: string;
-}
-
-interface InteractionHistory {
-  id: string;
-  type: 'email' | 'call' | 'meeting' | 'note';
-  date: string;
-  time: string;
-  subject: string;
-  content: string;
-  contact: string;
-}
-
-interface MHAAccount {
-  id: string;
-  name: string;
-  organization: string;
-  email: string;
-  phone: string;
   location: string;
-  potentialValue: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  status: 'active' | 'pending' | 'completed';
   lastContact: string;
-  status: 'hot-lead' | 'warm-lead' | 'cold-lead';
   selected: boolean;
-  contacts: Contact[];
-}
-
-interface Meeting {
-  id: string;
-  title: string;
-  client: string;
-  time: string;
-  type: 'call' | 'meeting' | 'demo';
 }
 
 const MHA = () => {
   const { handleTaskSave } = useTaskContext();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<MHAAccount | null>(null);
-  const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [isResearching, setIsResearching] = useState(false);
-  const [researchData, setResearchData] = useState<string | null>(null);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [taskPreset, setTaskPreset] = useState<{company: string, person: string} | null>(null);
-  const { toast } = useToast();
   
-  const [mhaAccounts, setMhaAccounts] = useState<MHAAccount[]>([
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedCount, setSelectedCount] = useState(0);
+  
+  const [mhaOffices, setMhaOffices] = useState<MHAOffice[]>([
     {
       id: '1',
-      name: 'Dr. Sandra Martinez',
-      organization: 'Metro Health Alliance',
-      email: 's.martinez@metrohealth.org',
-      phone: '+1 (555) 234-5678',
-      location: 'Los Angeles, CA',
-      potentialValue: '$450K',
-      lastContact: '2024-12-15',
-      status: 'hot-lead',
-      selected: false,
-      contacts: [
-        {
-          id: '1a',
-          name: 'Dr. Sandra Martinez',
-          title: 'Chief Medical Officer',
-          email: 's.martinez@metrohealth.org',
-          phone: '+1 (555) 234-5678',
-          lastContact: '2024-12-15'
-        },
-        {
-          id: '1b',
-          name: 'Robert Chen',
-          title: 'Director of Operations',
-          email: 'r.chen@metrohealth.org',
-          phone: '+1 (555) 234-5679',
-          lastContact: '2024-12-12'
-        }
-      ]
+      name: 'MHA Regional Office - Northeast',
+      location: 'Boston, MA',
+      contactPerson: 'Dr. Sarah Wilson',
+      email: 's.wilson@mha.gov',
+      phone: '+1 (555) 123-4567',
+      status: 'active',
+      lastContact: '2024-12-28',
+      selected: false
     },
     {
       id: '2',
-      name: 'Dr. Michael Thompson',
-      organization: 'Regional Medical Group',
-      email: 'm.thompson@regionalmed.com',
-      phone: '+1 (555) 345-6789',
-      location: 'Dallas, TX',
-      potentialValue: '$320K',
-      lastContact: '2024-12-10',
-      status: 'warm-lead',
-      selected: false,
-      contacts: [
-        {
-          id: '2a',
-          name: 'Dr. Michael Thompson',
-          title: 'Regional Director',
-          email: 'm.thompson@regionalmed.com',
-          phone: '+1 (555) 345-6789',
-          lastContact: '2024-12-10'
-        }
-      ]
+      name: 'MHA Regional Office - Southeast',
+      location: 'Atlanta, GA',
+      contactPerson: 'Dr. Michael Chen',
+      email: 'm.chen@mha.gov',
+      phone: '+1 (555) 234-5678',
+      status: 'pending',
+      lastContact: '2024-12-20',
+      selected: false
     },
     {
       id: '3',
-      name: 'Dr. Lisa Wang',
-      organization: 'Community Healthcare Network',
-      email: 'l.wang@communityhealth.org',
-      phone: '+1 (555) 456-7890',
-      location: 'Atlanta, GA',
-      potentialValue: '$280K',
-      lastContact: '2024-11-28',
-      status: 'cold-lead',
-      selected: false,
-      contacts: [
-        {
-          id: '3a',
-          name: 'Dr. Lisa Wang',
-          title: 'Network Administrator',
-          email: 'l.wang@communityhealth.org',
-          phone: '+1 (555) 456-7890',
-          lastContact: '2024-11-28'
-        },
-        {
-          id: '3b',
-          name: 'Jennifer Adams',
-          title: 'Compliance Officer',
-          email: 'j.adams@communityhealth.org',
-          phone: '+1 (555) 456-7891',
-          lastContact: '2024-11-25'
-        }
-      ]
+      name: 'MHA Regional Office - Midwest',
+      location: 'Chicago, IL',
+      contactPerson: 'Dr. Emily Rodriguez',
+      email: 'e.rodriguez@mha.gov',
+      phone: '+1 (555) 345-6789',
+      status: 'completed',
+      lastContact: '2024-12-15',
+      selected: false
     },
     {
       id: '4',
-      name: 'Dr. Robert Johnson',
-      organization: 'Integrated Care Systems',
-      email: 'r.johnson@integratedcare.com',
-      phone: '+1 (555) 567-8901',
-      location: 'Phoenix, AZ',
-      potentialValue: '$520K',
-      lastContact: '2024-12-20',
-      status: 'hot-lead',
-      selected: false,
-      contacts: [
-        {
-          id: '4a',
-          name: 'Dr. Robert Johnson',
-          title: 'Chief Executive Officer',
-          email: 'r.johnson@integratedcare.com',
-          phone: '+1 (555) 567-8901',
-          lastContact: '2024-12-20'
-        }
-      ]
+      name: 'MHA Regional Office - West',
+      location: 'San Francisco, CA',
+      contactPerson: 'Dr. James Thompson',
+      email: 'j.thompson@mha.gov',
+      phone: '+1 (555) 456-7890',
+      status: 'active',
+      lastContact: '2024-12-29',
+      selected: false
     }
   ]);
 
-  // Mock interaction history data - Note: In production, this would come from Compass
-  const getInteractionHistory = (contactId: string): InteractionHistory[] => {
-    const mockHistory: InteractionHistory[] = [
-      {
-        id: '1',
-        type: 'email',
-        date: '2024-12-15',
-        time: '1:20 PM',
-        subject: 'MHA Partnership Proposal',
-        content: 'Sent comprehensive partnership proposal focusing on healthcare compliance and operational efficiency.',
-        contact: 'Dr. Sandra Martinez'
-      },
-      {
-        id: '2',
-        type: 'call',
-        date: '2024-12-12',
-        time: '10:30 AM',
-        subject: 'Compliance Requirements Discussion',
-        content: 'Discussed current compliance challenges and our solutions. Very positive reception from leadership team.',
-        contact: 'Dr. Sandra Martinez'
-      },
-      {
-        id: '3',
-        type: 'meeting',
-        date: '2024-12-08',
-        time: '2:00 PM',
-        subject: 'Strategic Planning Session',
-        content: 'Participated in their strategic planning meeting. Identified key areas where our services align with their goals.',
-        contact: 'Dr. Sandra Martinez'
-      },
-      {
-        id: '4',
-        type: 'note',
-        date: '2024-12-05',
-        time: '3:45 PM',
-        subject: 'Account Priority Status',
-        content: 'Elevated to highest priority MHA account. Strong conversion potential. Decision timeline Q1 2025.',
-        contact: 'Internal'
-      }
-    ];
-    return mockHistory;
-  };
-
-  const handleAccountSelect = (accountId: string) => {
-    setMhaAccounts(mhaAccounts.map(account => 
-      account.id === accountId ? { ...account, selected: !account.selected } : account
-    ));
-  };
-
-  const handleAccountClick = (account: MHAAccount) => {
-    setSelectedCompany(account);
-    setIsCompanyModalOpen(true);
-  };
-
-  const handleContactClick = (contact: Contact) => {
-    setSelectedContact(contact);
-    setIsInteractionModalOpen(true);
+  const handleOfficeSelect = (officeId: string) => {
+    setMhaOffices(offices => 
+      offices.map(office => 
+        office.id === officeId 
+          ? { ...office, selected: !office.selected }
+          : office
+      )
+    );
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'hot-lead': return 'bg-red-100 text-red-800';
-      case 'warm-lead': return 'bg-yellow-100 text-yellow-800';
-      case 'cold-lead': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active': return 'bg-green-100 text-green-800 border-green-300';
+      case 'pending': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'hot-lead': return 'Hot Lead';
-      case 'warm-lead': return 'Warm Lead';
-      case 'cold-lead': return 'Cold Lead';
-      default: return status;
-    }
-  };
-
-  const getInteractionIcon = (type: string) => {
-    switch (type) {
-      case 'email': return <Mail className="w-4 h-4" />;
-      case 'call': return <PhoneCall className="w-4 h-4" />;
-      case 'meeting': return <Calendar className="w-4 h-4" />;
-      case 'note': return <FileText className="w-4 h-4" />;
-      default: return <MessageSquare className="w-4 h-4" />;
-    }
-  };
-
-  const getInteractionColor = (type: string) => {
-    switch (type) {
-      case 'email': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'call': return 'bg-green-50 text-green-700 border-green-200';
-      case 'meeting': return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'note': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
-  };
-
-  const filteredAccounts = mhaAccounts.filter(account =>
-    account.organization.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const selectedCount = mhaAccounts.filter(a => a.selected).length;
-
-  const handleDeepResearch = async () => {
-    if (!selectedCompany) return;
-    
-    setIsResearching(true);
-    setResearchData(null);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      const mockResearchData = `${selectedCompany.organization} is a high-priority Must Have Account with exceptional conversion potential.
-
-Key insights:
-• Strategic importance: Tier 1 healthcare organization with significant market influence
-• Recently announced major expansion plans and technology modernization initiatives
-• Current pain points align perfectly with our healthcare compliance solutions
-• Decision timeline: Q1 2025 with budget approval already secured
-• Key stakeholders are actively engaged and showing strong interest
-
-Competitive landscape analysis shows we have a significant advantage due to our specialized healthcare expertise and proven track record in similar organizations.`;
-      
-      setResearchData(mockResearchData);
-      setIsResearching(false);
-    }, 2000);
-  };
-
-  const handleAddTask = (contact: Contact, company: string) => {
-    setTaskPreset({
-      company: company,
-      person: contact.name
-    });
-    setIsTaskModalOpen(true);
-  };
-
-  const onTaskSave = (taskData: Omit<Task, 'id'>) => {
-    handleTaskSave(taskData);
-    toast({
-      title: "Task Created",
-      description: `Task has been created and assigned to ${taskData.assignee}`,
-    });
-    setIsTaskModalOpen(false);
-    setTaskPreset(null);
-  };
+  const filteredOffices = mhaOffices.filter(office => {
+    const matchesSearch = office.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || office.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Must Have Accounts (MHA)</h1>
-        <p className="text-gray-600">Priority accounts targeted for client conversion - track leads and conversion opportunities.</p>
+    <div>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-gray-900 mb-2">MHA Offices</h1>
+        <p className="text-sm text-gray-600">Manage Mental Health Administration relationships.</p>
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search priority accounts..."
+      <div className="mb-4">
+        <div className="flex gap-2 mb-2">
+          <input
+            type="text"
+            placeholder="Search MHA offices..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="flex-1 px-3 py-1 border border-gray-300"
           />
-        </div>
-        <Button variant="outline" className="flex items-center">
-          <Filter className="w-4 h-4 mr-2" />
-          Filter
-        </Button>
-        {selectedCount > 0 && (
-          <Button 
-            className="bg-blue-600 hover:bg-blue-700"
-            onClick={() => {
-              toast({
-                title: "Added to Pipeline",
-                description: `${selectedCount} account${selectedCount > 1 ? 's' : ''} added to pipeline.`,
-              });
-              setMhaAccounts(mhaAccounts.map(account => ({ ...account, selected: false })));
-            }}
+          <button 
+            className="px-3 py-1 border border-gray-300 bg-white hover:bg-gray-50"
+            onClick={() => setShowFilters(!showFilters)}
           >
-            Add {selectedCount} to Pipeline
-          </Button>
+            Filter
+          </button>
+        </div>
+
+        {showFilters && (
+          <div className="p-3 bg-gray-100 border border-gray-300 mb-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm">Status:</label>
+              <select 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-2 py-1 border border-gray-300"
+              >
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* MHA Accounts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAccounts.map((account) => (
-          <Card 
-            key={account.id} 
-            className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-            onClick={() => handleAccountClick(account)}
+      {/* Office List */}
+      <div className="space-y-2">
+        {filteredOffices.map((office) => (
+          <div 
+            key={office.id} 
+            className="border border-gray-300 p-3"
           >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    checked={account.selected}
-                    onCheckedChange={() => handleAccountSelect(account.id)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div>
-                    <CardTitle className="text-lg font-bold">{account.organization}</CardTitle>
-                    <p className="text-sm text-gray-600 flex items-center">
-                      <Users className="w-3 h-3 mr-1" />
-                      {account.contacts.length} contact{account.contacts.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(account.status)}`}>
-                  {getStatusText(account.status)}
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="w-4 h-4 mr-2" />
-                {account.location}
-              </div>
-              <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={office.selected}
+                  onChange={() => handleOfficeSelect(office.id)}
+                />
                 <div>
-                  <p className="text-sm text-gray-500">Potential Value</p>
-                  <p className="font-semibold text-green-600 flex items-center">
-                    <Target className="w-4 h-4 mr-1" />
-                    {account.potentialValue}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Last Contact</p>
-                  <p className="text-sm font-medium">{new Date(account.lastContact).toLocaleDateString()}</p>
+                  <h3 className="font-semibold text-gray-900">{office.name}</h3>
+                  <p className="text-sm text-gray-600">{office.location}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <span className={`px-2 py-1 text-xs ${getStatusColor(office.status)}`}>
+                {office.status}
+              </span>
+            </div>
+            <div className="text-sm text-gray-600 mb-1">
+              Contact: {office.contactPerson}
+            </div>
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>{office.email}</span>
+              <span>Last Contact: {new Date(office.lastContact).toLocaleDateString()}</span>
+            </div>
+          </div>
         ))}
       </div>
 
-      {filteredAccounts.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">No priority accounts found matching your search.</p>
+      {filteredOffices.length === 0 && (
+        <div className="text-center py-4">
+          <p className="text-gray-500">No MHA offices found.</p>
         </div>
       )}
-
-      {/* Company Details Modal */}
-      <Dialog open={isCompanyModalOpen} onOpenChange={setIsCompanyModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">{selectedCompany?.organization}</DialogTitle>
-          </DialogHeader>
-          
-          {selectedCompany && (
-            <div className="space-y-6">
-              {/* Deep Research Section */}
-              <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-slate-900 flex items-center justify-between">
-                    <span className="flex items-center">
-                      <Search className="w-5 h-5 mr-2 text-blue-600" />
-                      Company Intelligence
-                    </span>
-                    <Button
-                      onClick={handleDeepResearch}
-                      disabled={isResearching}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    >
-                      {isResearching ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Sage AI is fetching...
-                        </>
-                      ) : (
-                        <>
-                          <Search className="w-4 h-4 mr-2" />
-                          Deep Research
-                        </>
-                      )}
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {researchData ? (
-                    <div className="prose prose-sm max-w-none">
-                      <div className="bg-white/70 p-4 rounded-lg border border-blue-200">
-                        <pre className="whitespace-pre-wrap text-slate-700 font-sans text-sm leading-relaxed">
-                          {researchData}
-                        </pre>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-slate-600 italic">
-                      Click "Deep Research" to get AI-powered insights about {selectedCompany.organization}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Organization Contacts</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  * Contact information displayed here would be populated from Compass based on user selection
-                </p>
-                <div className="space-y-3">
-                  {selectedCompany.contacts.map((contact) => (
-                    <Card 
-                      key={contact.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => handleContactClick(contact)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold">{contact.name}</h4>
-                            <p className="text-sm text-gray-600">{contact.title}</p>
-                            <div className="flex items-center text-sm text-gray-500 mt-1">
-                              <Mail className="w-3 h-3 mr-1" />
-                              {contact.email}
-                            </div>
-                            <div className="flex items-center text-sm text-gray-500 mt-1">
-                              <Phone className="w-3 h-3 mr-1" />
-                              {contact.phone}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-gray-500">Last Contact</p>
-                            <p className="text-sm font-medium">{new Date(contact.lastContact).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Interaction History Modal */}
-      <Dialog open={isInteractionModalOpen} onOpenChange={setIsInteractionModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold flex items-center justify-between">
-              <span>Interaction History - {selectedContact?.name}</span>
-              {selectedContact && selectedCompany && (
-                <Button
-                  onClick={() => handleAddTask(selectedContact, selectedCompany.organization)}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Task
-                </Button>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedContact && (
-            <div className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold">{selectedContact.name}</h4>
-                <p className="text-sm text-gray-600">{selectedContact.title}</p>
-                <div className="flex items-center text-sm text-gray-500 mt-1">
-                  <Mail className="w-3 h-3 mr-1" />
-                  {selectedContact.email}
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Recent Interactions</h3>
-                {getInteractionHistory(selectedContact.id).map((interaction) => (
-                  <Card key={interaction.id} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <Badge className={`px-2 py-1 text-xs ${getInteractionColor(interaction.type)}`}>
-                            <div className="flex items-center space-x-1">
-                              {getInteractionIcon(interaction.type)}
-                              <span className="capitalize">{interaction.type}</span>
-                            </div>
-                          </Badge>
-                          <span className="text-sm font-medium">{interaction.subject}</span>
-                        </div>
-                        <div className="text-right text-sm text-gray-500">
-                          <p>{new Date(interaction.date).toLocaleDateString()}</p>
-                          <p>{interaction.time}</p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-700">{interaction.content}</p>
-                      <p className="text-xs text-gray-500 mt-2">Contact: {interaction.contact}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Task Modal */}
-      <TaskModal
-        isOpen={isTaskModalOpen}
-        onClose={() => {
-          setIsTaskModalOpen(false);
-          setTaskPreset(null);
-        }}
-        onSave={onTaskSave}
-        task={null}
-        preset={taskPreset}
-      />
     </div>
   );
 };

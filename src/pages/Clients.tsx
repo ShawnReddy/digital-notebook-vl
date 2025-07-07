@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Star, Phone, Mail, MapPin, Users, MessageSquare, PhoneCall, Calendar, FileText, Loader2, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import TaskModal from '@/components/TaskModal';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { type Task } from '@/data/taskData';
@@ -66,7 +58,6 @@ const Clients = () => {
   const [researchData, setResearchData] = useState<string | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [taskPreset, setTaskPreset] = useState<{company: string, person: string} | null>(null);
-  const { toast } = useToast();
   
   const [clients, setClients] = useState<Client[]>([
     {
@@ -235,10 +226,7 @@ const Clients = () => {
   const handleAddToDashboard = () => {
     const selectedClients = clients.filter(c => c.selected);
     if (selectedClients.length > 0) {
-      toast({
-        title: "Added to Dashboard",
-        description: `${selectedClients.length} client${selectedClients.length > 1 ? 's' : ''} added to your dashboard.`,
-      });
+      alert(`${selectedClients.length} client${selectedClients.length > 1 ? 's' : ''} added to your dashboard.`);
       setClients(clients.map(client => ({ ...client, selected: false })));
     }
   };
@@ -303,11 +291,11 @@ Our analysis shows they are an ideal client for our services with high potential
 
   const getInteractionIcon = (type: string) => {
     switch (type) {
-      case 'email': return <Mail className="w-4 h-4" />;
-      case 'call': return <PhoneCall className="w-4 h-4" />;
-      case 'meeting': return <Calendar className="w-4 h-4" />;
-      case 'note': return <FileText className="w-4 h-4" />;
-      default: return <MessageSquare className="w-4 h-4" />;
+      case 'email': return '📧';
+      case 'call': return '📞';
+      case 'meeting': return '📅';
+      case 'note': return '📝';
+      default: return '💬';
     }
   };
 
@@ -330,203 +318,146 @@ Our analysis shows they are an ideal client for our services with high potential
   const selectedCount = clients.filter(c => c.selected).length;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Active Clients</h1>
-        <p className="text-gray-600">Manage your active client relationships and track engagement.</p>
-      </div>
+    <div>
+      <h1 className="text-xl font-bold mb-4">Active Clients</h1>
 
-      {/* Search and Filters */}
-      <div className="mb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search clients..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button 
-            variant="outline" 
-            className="flex items-center"
+      <div className="mb-4">
+        <div className="flex gap-2 mb-2">
+          <input
+            type="text"
+            placeholder="Search clients..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 px-2 py-1 border border-gray-300"
+          />
+          <button 
+            className="px-2 py-1 border border-gray-300"
             onClick={() => setShowFilters(!showFilters)}
           >
-            <Filter className="w-4 h-4 mr-2" />
             Filter
-          </Button>
+          </button>
           {selectedCount > 0 && (
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700"
+            <button 
+              className="px-2 py-1 bg-blue-600 text-white"
               onClick={handleAddToDashboard}
             >
               Add {selectedCount} to Dashboard
-            </Button>
+            </button>
           )}
         </div>
 
         {showFilters && (
-          <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Status:</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="growing">Growing</SelectItem>
-                  <SelectItem value="at-risk">At Risk</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="p-2 bg-gray-100 border border-gray-300 mb-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm">Status:</label>
+              <select 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-2 py-1 border border-gray-300"
+              >
+                <option value="all">All</option>
+                <option value="active">Active</option>
+                <option value="growing">Growing</option>
+                <option value="at-risk">At Risk</option>
+              </select>
             </div>
           </div>
         )}
       </div>
 
-      {/* Client Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="space-y-1">
         {filteredClients.map((client) => (
-          <Card 
+          <div 
             key={client.id} 
-            className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+            className="border border-gray-300 p-2 cursor-pointer"
             onClick={() => handleClientClick(client)}
           >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    checked={client.selected}
-                    onCheckedChange={() => handleClientSelect(client.id)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div>
-                    <CardTitle className="text-lg font-bold">{client.company}</CardTitle>
-                    <p className="text-sm text-gray-600 flex items-center">
-                      <Users className="w-3 h-3 mr-1" />
-                      {client.contacts.length} contact{client.contacts.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(client.status)}`}>
-                  {client.status}
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="w-4 h-4 mr-2" />
-                {client.location}
-              </div>
-              <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+            <div className="flex justify-between items-start mb-1">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={client.selected}
+                  onChange={() => handleClientSelect(client.id)}
+                  onClick={(e) => e.stopPropagation()}
+                />
                 <div>
-                  <p className="text-sm text-gray-500">Annual Revenue</p>
-                  <p className="font-semibold text-green-600">{client.revenue}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Last Contact</p>
-                  <p className="text-sm font-medium">{new Date(client.lastContact).toLocaleDateString()}</p>
+                  <div className="font-semibold text-sm">{client.company}</div>
+                  <div className="text-xs text-gray-600">{client.location}</div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <span className="text-xs">{client.status}</span>
+            </div>
+            <div className="flex justify-between text-xs text-gray-600">
+              <span>Revenue: {client.revenue}</span>
+              <span>Last Contact: {new Date(client.lastContact).toLocaleDateString()}</span>
+            </div>
+          </div>
         ))}
       </div>
 
       {filteredClients.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500">No clients found matching your search.</p>
+        <div className="text-center py-4">
+          <p className="text-sm text-gray-500">No clients found.</p>
         </div>
       )}
 
       {/* Company Details Modal */}
       <Dialog open={isCompanyModalOpen} onOpenChange={setIsCompanyModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">{selectedCompany?.company}</DialogTitle>
+            <DialogTitle className="text-lg font-bold">{selectedCompany?.company}</DialogTitle>
           </DialogHeader>
           
           {selectedCompany && (
-            <div className="space-y-6">
-              {/* Deep Research Section */}
-              <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-slate-900 flex items-center justify-between">
-                    <span className="flex items-center">
-                      <Search className="w-5 h-5 mr-2 text-blue-600" />
-                      Company Intelligence
-                    </span>
-                    <Button
-                      onClick={handleDeepResearch}
-                      disabled={isResearching}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    >
-                      {isResearching ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Sage AI is fetching...
-                        </>
-                      ) : (
-                        <>
-                          <Search className="w-4 h-4 mr-2" />
-                          Deep Research
-                        </>
-                      )}
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            <div className="space-y-3">
+              <div className="border border-gray-300 p-2">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-bold text-sm">Company Intelligence</h3>
+                  <button
+                    onClick={handleDeepResearch}
+                    disabled={isResearching}
+                    className="px-2 py-1 bg-blue-600 text-white text-xs"
+                  >
+                    {isResearching ? 'Loading...' : 'Deep Research'}
+                  </button>
+                </div>
+                <div>
                   {researchData ? (
-                    <div className="prose prose-sm max-w-none">
-                      <div className="bg-white/70 p-4 rounded-lg border border-blue-200">
-                        <pre className="whitespace-pre-wrap text-slate-700 font-sans text-sm leading-relaxed">
-                          {researchData}
-                        </pre>
-                      </div>
+                    <div className="bg-gray-100 p-2 border border-gray-300">
+                      <pre className="whitespace-pre-wrap text-xs">
+                        {researchData}
+                      </pre>
                     </div>
                   ) : (
-                    <p className="text-slate-600 italic">
-                      Click "Deep Research" to get AI-powered insights about {selectedCompany.company}
+                    <p className="text-xs text-gray-600">
+                      Click "Deep Research" to get insights about {selectedCompany.company}
                     </p>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
               
               <div>
-                <h3 className="text-lg font-semibold mb-4">Company Contacts</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  * Contact information displayed here would be populated from Compass based on user selection
-                </p>
-                <div className="space-y-3">
+                <h3 className="font-bold text-sm mb-2">Company Contacts</h3>
+                <div className="space-y-1">
                   {selectedCompany.contacts.map((contact) => (
-                    <Card 
+                    <div 
                       key={contact.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      className="border border-gray-300 p-2 cursor-pointer"
                       onClick={() => handleContactClick(contact)}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold">{contact.name}</h4>
-                            <p className="text-sm text-gray-600">{contact.title}</p>
-                            <div className="flex items-center text-sm text-gray-500 mt-1">
-                              <Mail className="w-3 h-3 mr-1" />
-                              {contact.email}
-                            </div>
-                            <div className="flex items-center text-sm text-gray-500 mt-1">
-                              <Phone className="w-3 h-3 mr-1" />
-                              {contact.phone}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-gray-500">Last Contact</p>
-                            <p className="text-sm font-medium">{new Date(contact.lastContact).toLocaleDateString()}</p>
-                          </div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-semibold text-sm">{contact.name}</div>
+                          <div className="text-xs text-gray-600">{contact.title}</div>
+                          <div className="text-xs text-gray-500">{contact.email}</div>
+                          <div className="text-xs text-gray-500">{contact.phone}</div>
                         </div>
-                      </CardContent>
-                    </Card>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-500">Last Contact</div>
+                          <div className="text-xs">{new Date(contact.lastContact).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -537,58 +468,48 @@ Our analysis shows they are an ideal client for our services with high potential
 
       {/* Interaction History Modal */}
       <Dialog open={isInteractionModalOpen} onOpenChange={setIsInteractionModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold flex items-center justify-between">
-              <span>Interaction History - {selectedContact?.name}</span>
+            <DialogTitle className="text-lg font-bold">
+              Interaction History - {selectedContact?.name}
               {selectedContact && selectedCompany && (
-                <Button
+                <button
                   onClick={() => handleAddTask(selectedContact, selectedCompany.company)}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="ml-2 px-2 py-1 bg-blue-600 text-white text-xs"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
                   Add Task
-                </Button>
+                </button>
               )}
             </DialogTitle>
           </DialogHeader>
           
           {selectedContact && (
-            <div className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-semibold">{selectedContact.name}</h4>
-                <p className="text-sm text-gray-600">{selectedContact.title}</p>
-                <div className="flex items-center text-sm text-gray-500 mt-1">
-                  <Mail className="w-3 h-3 mr-1" />
-                  {selectedContact.email}
-                </div>
+            <div className="space-y-2">
+              <div className="bg-gray-100 p-2 border border-gray-300">
+                <div className="font-semibold text-sm">{selectedContact.name}</div>
+                <div className="text-xs text-gray-600">{selectedContact.title}</div>
+                <div className="text-xs text-gray-500">{selectedContact.email}</div>
               </div>
               
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Recent Interactions</h3>
-                {getInteractionHistory(selectedContact.id).map((interaction) => (
-                  <Card key={interaction.id} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <Badge className={`px-2 py-1 text-xs ${getInteractionColor(interaction.type)}`}>
-                            <div className="flex items-center space-x-1">
-                              {getInteractionIcon(interaction.type)}
-                              <span className="capitalize">{interaction.type}</span>
-                            </div>
-                          </Badge>
-                          <span className="text-sm font-medium">{interaction.subject}</span>
+              <div>
+                <h3 className="font-bold text-sm mb-2">Recent Interactions</h3>
+                <div className="space-y-1">
+                  {getInteractionHistory(selectedContact.id).map((interaction) => (
+                    <div key={interaction.id} className="border border-gray-300 p-2">
+                      <div className="flex justify-between items-start mb-1">
+                        <div>
+                          <span className="text-xs">{interaction.type}</span>
+                          <span className="text-xs font-medium ml-2">{interaction.subject}</span>
                         </div>
-                        <div className="text-right text-sm text-gray-500">
-                          <p>{new Date(interaction.date).toLocaleDateString()}</p>
-                          <p>{interaction.time}</p>
+                        <div className="text-right text-xs text-gray-500">
+                          <div>{new Date(interaction.date).toLocaleDateString()}</div>
+                          <div>{interaction.time}</div>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-700">{interaction.content}</p>
-                      <p className="text-xs text-gray-500 mt-2">Contact: {interaction.contact}</p>
-                    </CardContent>
-                  </Card>
-                ))}
+                      <div className="text-xs text-gray-700">{interaction.content}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

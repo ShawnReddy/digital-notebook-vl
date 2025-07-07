@@ -1,13 +1,8 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tag } from 'lucide-react';
 import { type Task } from '@/data/taskData';
 import { useTaskForm } from '@/hooks/useTaskForm';
-import AssigneeSection from './TaskModal/AssigneeSection';
-import TagSection from './TaskModal/TagSection';
-import BasicFields from './TaskModal/BasicFields';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -50,50 +45,109 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] bg-white/95 backdrop-blur-sm border-0 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="pb-6">
-          <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
-              <Tag className="w-4 h-4 text-white" />
-            </div>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-bold">
             {task ? 'Edit Task' : 'Create New Task'}
           </DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <BasicFields
-            title={formData.title}
-            dueDate={formData.dueDate}
-            dueTime={formData.dueTime}
-            priority={formData.priority}
-            onInputChange={handleInputChange}
-          />
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="text-sm font-bold">Task Title</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => handleInputChange('title', e.target.value)}
+              placeholder="What needs to be done?"
+              required
+              className="w-full px-2 py-1 border border-gray-300 text-sm"
+            />
+          </div>
 
-          <AssigneeSection currentUserName={currentUserName} />
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-sm font-bold">Due Date</label>
+              <input
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => handleInputChange('dueDate', e.target.value)}
+                required
+                className="w-full px-2 py-1 border border-gray-300 text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-bold">Due Time</label>
+              <input
+                type="time"
+                value={formData.dueTime}
+                onChange={(e) => handleInputChange('dueTime', e.target.value)}
+                required
+                className="w-full px-2 py-1 border border-gray-300 text-sm"
+              />
+            </div>
+          </div>
 
-          <TagSection
-            tag={formData.tag}
-            isAutoTagged={isAutoTagged}
-            preset={preset}
-            onTagTypeChange={handleTagTypeChange}
-            onTagNameChange={handleTagNameChangeWithPeople}
-          />
+          <div>
+            <label className="text-sm font-bold">Priority</label>
+            <select
+              value={formData.priority}
+              onChange={(e) => handleInputChange('priority', e.target.value)}
+              className="w-full px-2 py-1 border border-gray-300 text-sm"
+            >
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
 
-          <div className="flex justify-end space-x-3 pt-6 border-t border-slate-200">
-            <Button 
+          <div>
+            <label className="text-sm font-bold">Assigned To</label>
+            <div className="px-2 py-1 border border-gray-300 bg-gray-100 text-sm">
+              {currentUserName} (You)
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-bold">Tag Type</label>
+            <select
+              value={formData.tag.type}
+              onChange={(e) => handleTagTypeChange(e.target.value as 'company' | 'person' | 'personal')}
+              className="w-full px-2 py-1 border border-gray-300 text-sm"
+            >
+              <option value="personal">Personal</option>
+              <option value="company">Company</option>
+              <option value="person">Person</option>
+            </select>
+          </div>
+
+          {formData.tag.type !== 'personal' && (
+            <div>
+              <label className="text-sm font-bold">Tag Name</label>
+              <input
+                type="text"
+                value={formData.tag.name}
+                onChange={(e) => handleTagNameChangeWithPeople(e.target.value)}
+                placeholder={formData.tag.type === 'company' ? 'Company name' : 'Person name'}
+                className="w-full px-2 py-1 border border-gray-300 text-sm"
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-gray-300">
+            <button 
               type="button" 
-              variant="outline" 
               onClick={onClose}
-              className="px-6 h-12 border-slate-200 hover:bg-slate-50"
+              className="px-2 py-1 border border-gray-300 text-sm"
             >
               Cancel
-            </Button>
-            <Button 
+            </button>
+            <button 
               type="submit" 
-              className="px-6 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg"
+              className="px-2 py-1 bg-blue-600 text-white text-sm"
             >
               {task ? 'Update Task' : 'Create Task'}
-            </Button>
+            </button>
           </div>
         </form>
       </DialogContent>

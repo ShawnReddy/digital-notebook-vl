@@ -30,25 +30,18 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-              <Building className="w-7 h-7 text-white" />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-4">
+          <h1 className="text-xl font-bold text-gray-900 mb-2">
             Digital Notebook
           </h1>
-          <p className="text-slate-600 mt-2">Welcome back! Please sign in to continue.</p>
+          <p className="text-gray-600">Please sign in to continue.</p>
         </div>
 
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-center text-xl">Access Your Account</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="border border-gray-300 bg-white p-4">
+          <h2 className="text-center text-lg font-bold mb-4">Access Your Account</h2>
+          <div>
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="login">Sign In</TabsTrigger>
@@ -89,7 +82,7 @@ const AuthPage = () => {
                   </div>
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
                     disabled={loading}
                   >
                     {loading ? 'Signing in...' : 'Sign In'}
@@ -146,7 +139,7 @@ const AuthPage = () => {
                   </div>
                   <Button 
                     type="submit" 
-                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+                    className="w-full bg-green-600 hover:bg-green-700"
                     disabled={loading}
                   >
                     {loading ? 'Creating account...' : 'Create Account'}
@@ -155,7 +148,7 @@ const AuthPage = () => {
               </TabsContent>
             </Tabs>
 
-            <div className="mt-6 pt-6 border-t border-slate-200">
+            <div className="mt-4 pt-4 border-t border-gray-200">
               <Button 
                 variant="outline" 
                 className="w-full"
@@ -168,8 +161,8 @@ const AuthPage = () => {
                 Sign in with Valuelabs SSO
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,9 +1,6 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, User, Calendar, Phone, Mail, MessageSquare, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Meeting {
   id: string;
@@ -104,10 +101,10 @@ Competitive landscape shows they're evaluating 3 other vendors, but our solution
 
   const getInteractionIcon = (type: string) => {
     switch (type) {
-      case 'call': return <Phone className="w-4 h-4" />;
-      case 'email': return <Mail className="w-4 h-4" />;
-      case 'meeting': return <MessageSquare className="w-4 h-4" />;
-      default: return <MessageSquare className="w-4 h-4" />;
+      case 'call': return '📞';
+      case 'email': return '📧';
+      case 'meeting': return '💬';
+      default: return '💬';
     }
   };
 
@@ -115,95 +112,61 @@ Competitive landscape shows they're evaluating 3 other vendors, but our solution
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
-        <DialogHeader className="pb-6">
-          <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
-              <Search className="w-4 h-4 text-white" />
-            </div>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-bold">
             Meeting Brief: {meeting?.title}
           </DialogTitle>
-          <p className="text-slate-600">Client: {meeting?.client} • {meeting?.time}</p>
+          <p className="text-sm text-gray-600">Client: {meeting?.client} • {meeting?.time}</p>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Deep Research Section */}
-          <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-slate-900 flex items-center justify-between">
-                <span className="flex items-center">
-                  <Search className="w-5 h-5 mr-2 text-blue-600" />
-                  Company Intelligence
-                </span>
-                <Button
-                  onClick={handleDeepResearch}
-                  disabled={isResearching}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                >
-                  {isResearching ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Sage AI is fetching...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4 mr-2" />
-                      Deep Research
-                    </>
-                  )}
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="border border-gray-300 p-3">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold">Company Intelligence</h3>
+              <button
+                onClick={handleDeepResearch}
+                disabled={isResearching}
+                className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700"
+              >
+                {isResearching ? 'Loading...' : 'Deep Research'}
+              </button>
+            </div>
+            <div>
               {researchData ? (
-                <div className="prose prose-sm max-w-none">
-                  <div className="bg-white/70 p-4 rounded-lg border border-blue-200">
-                    <pre className="whitespace-pre-wrap text-slate-700 font-sans text-sm leading-relaxed">
-                      {researchData}
-                    </pre>
-                  </div>
+                <div className="bg-gray-100 p-3 border border-gray-300">
+                  <pre className="whitespace-pre-wrap text-sm">
+                    {researchData}
+                  </pre>
                 </div>
               ) : (
-                <p className="text-slate-600 italic">
-                  Click "Deep Research" to get AI-powered insights about {meeting?.client}
+                <p className="text-gray-600 text-sm">
+                  Click "Deep Research" to get insights about {meeting?.client}
                 </p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Client Interaction History */}
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-slate-900 flex items-center">
-                <User className="w-5 h-5 mr-2 text-emerald-600" />
-                Client Interaction History
-              </CardTitle>
-              <p className="text-sm text-slate-600">
-                Recent interactions with {meeting?.client} team members
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="border border-gray-300 p-3">
+            <h3 className="font-semibold mb-2">Client Interaction History</h3>
+            <p className="text-sm text-gray-600 mb-3">
+              Recent interactions with {meeting?.client} team members
+            </p>
+            <div className="space-y-2">
               {interactions.length > 0 ? (
                 interactions.map((interaction) => (
-                  <div key={interaction.id} className="border border-slate-200 rounded-lg p-4 hover:bg-slate-50 transition-colors">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">
-                            {interaction.contact.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-slate-900">{interaction.contact}</h4>
-                          <p className="text-sm text-slate-600">{interaction.role}</p>
-                        </div>
+                  <div key={interaction.id} className="border border-gray-300 p-2">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-sm">{interaction.contact}</h4>
+                        <p className="text-xs text-gray-600">{interaction.role}</p>
                       </div>
-                      <div className="flex items-center space-x-2 text-sm text-slate-500">
-                        {getInteractionIcon(interaction.type)}
-                        <Calendar className="w-4 h-4" />
-                        <span>{new Date(interaction.date).toLocaleDateString()}</span>
+                      <div className="text-xs text-gray-500">
+                        {getInteractionIcon(interaction.type)} {new Date(interaction.date).toLocaleDateString()}
                         {interaction.duration && (
-                          <span className="bg-slate-100 px-2 py-1 rounded text-xs">
+                          <span className="ml-1 bg-gray-100 px-1 py-0.5">
                             {interaction.duration}
                           </span>
                         )}
@@ -211,34 +174,32 @@ Competitive landscape shows they're evaluating 3 other vendors, but our solution
                     </div>
                     
                     {interaction.subject && (
-                      <p className="font-medium text-slate-800 mb-2">
+                      <p className="text-xs font-medium text-gray-800 mb-1">
                         Subject: {interaction.subject}
                       </p>
                     )}
                     
-                    <p className="text-slate-700 text-sm leading-relaxed">
+                    <p className="text-xs text-gray-700">
                       {interaction.notes}
                     </p>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-slate-500">
-                  <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <div className="text-center py-4 text-gray-500 text-sm">
                   <p>No interaction history available for {meeting?.client}</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
-        <div className="flex justify-end pt-6 border-t border-slate-200">
-          <Button 
+        <div className="flex justify-end pt-3 border-t border-gray-200">
+          <button 
             onClick={onClose}
-            variant="outline"
-            className="px-6"
+            className="px-3 py-1 border border-gray-300 bg-white hover:bg-gray-50"
           >
             Close
-          </Button>
+          </button>
         </div>
       </DialogContent>
     </Dialog>

@@ -327,206 +327,157 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
   const selectedCount = prospects.filter(p => p.selected).length;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Prospects</h1>
-        <p className="text-gray-600">Track and nurture potential clients through the sales pipeline.</p>
+    <div>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Prospects</h1>
+        <p className="text-sm text-gray-600">Track potential clients and manage your sales pipeline.</p>
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search prospects..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button 
-            variant="outline" 
-            className="flex items-center"
+      <div className="mb-4">
+        <div className="flex gap-2 mb-2">
+          <input
+            type="text"
+            placeholder="Search prospects..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 px-3 py-1 border border-gray-300"
+          />
+          <button 
+            className="px-3 py-1 border border-gray-300 bg-white hover:bg-gray-50"
             onClick={() => setShowFilters(!showFilters)}
           >
-            <Filter className="w-4 h-4 mr-2" />
             Filter
-          </Button>
+          </button>
           {selectedCount > 0 && (
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700"
+            <button 
+              className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700"
               onClick={handleAddToDashboard}
             >
               Add {selectedCount} to Dashboard
-            </Button>
+            </button>
           )}
         </div>
 
         {showFilters && (
-          <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700">Stage:</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="hot">Hot</SelectItem>
-                  <SelectItem value="warm">Warm</SelectItem>
-                  <SelectItem value="cold">Cold</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="p-3 bg-gray-100 border border-gray-300 mb-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm">Stage:</label>
+              <select 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-2 py-1 border border-gray-300"
+              >
+                <option value="all">All</option>
+                <option value="hot">Hot</option>
+                <option value="warm">Warm</option>
+                <option value="cold">Cold</option>
+              </select>
             </div>
           </div>
         )}
       </div>
 
-      {/* Prospects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Prospects List */}
+      <div className="space-y-2">
         {filteredProspects.map((prospect) => (
-          <Card 
+          <div 
             key={prospect.id} 
-            className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+            className="border border-gray-300 p-3 cursor-pointer hover:bg-gray-50"
             onClick={() => handleProspectClick(prospect)}
           >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    checked={prospect.selected}
-                    onCheckedChange={() => handleProspectSelect(prospect.id)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div>
-                    <CardTitle className="text-lg font-bold">{prospect.company}</CardTitle>
-                    <p className="text-sm text-gray-600 flex items-center">
-                      <Users className="w-3 h-3 mr-1" />
-                      {prospect.contacts.length} contact{prospect.contacts.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${getStageColor(prospect.stage)}`}>
-                  {prospect.stage}
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="w-4 h-4 mr-2" />
-                {prospect.location}
-              </div>
-              <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={prospect.selected}
+                  onChange={() => handleProspectSelect(prospect.id)}
+                  onClick={(e) => e.stopPropagation()}
+                />
                 <div>
-                  <p className="text-sm text-gray-500">Potential Revenue</p>
-                  <p className="font-semibold text-blue-600 flex items-center">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    {prospect.potentialRevenue}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Last Contact</p>
-                  <p className="text-sm font-medium">{new Date(prospect.lastContact).toLocaleDateString()}</p>
+                  <h3 className="font-semibold text-gray-900">{prospect.company}</h3>
+                  <p className="text-sm text-gray-600">{prospect.location}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <span className={`px-2 py-1 text-xs ${getStageColor(prospect.stage)}`}>
+                {prospect.stage}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>Potential Revenue: {prospect.potentialRevenue}</span>
+              <span>Last Contact: {new Date(prospect.lastContact).toLocaleDateString()}</span>
+            </div>
+          </div>
         ))}
       </div>
 
       {filteredProspects.length === 0 && (
-        <div className="text-center py-12">
+        <div className="text-center py-4">
           <p className="text-gray-500">No prospects found matching your search.</p>
         </div>
       )}
 
       {/* Company Details Modal */}
       <Dialog open={isCompanyModalOpen} onOpenChange={setIsCompanyModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">{selectedCompany?.company}</DialogTitle>
+            <DialogTitle className="text-lg font-bold">{selectedCompany?.company}</DialogTitle>
           </DialogHeader>
           
           {selectedCompany && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Deep Research Section */}
-              <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-slate-900 flex items-center justify-between">
-                    <span className="flex items-center">
-                      <Search className="w-5 h-5 mr-2 text-blue-600" />
-                      Company Intelligence
-                    </span>
-                    <Button
-                      onClick={handleDeepResearch}
-                      disabled={isResearching}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    >
-                      {isResearching ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Sage AI is fetching...
-                        </>
-                      ) : (
-                        <>
-                          <Search className="w-4 h-4 mr-2" />
-                          Deep Research
-                        </>
-                      )}
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              <div className="border border-gray-300 p-3">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-semibold">Company Intelligence</h3>
+                  <button
+                    onClick={handleDeepResearch}
+                    disabled={isResearching}
+                    className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    {isResearching ? 'Loading...' : 'Deep Research'}
+                  </button>
+                </div>
+                <div>
                   {researchData ? (
-                    <div className="prose prose-sm max-w-none">
-                      <div className="bg-white/70 p-4 rounded-lg border border-blue-200">
-                        <pre className="whitespace-pre-wrap text-slate-700 font-sans text-sm leading-relaxed">
-                          {researchData}
-                        </pre>
-                      </div>
+                    <div className="bg-gray-100 p-3 border border-gray-300">
+                      <pre className="whitespace-pre-wrap text-sm">
+                        {researchData}
+                      </pre>
                     </div>
                   ) : (
-                    <p className="text-slate-600 italic">
-                      Click "Deep Research" to get AI-powered insights about {selectedCompany.company}
+                    <p className="text-gray-600 text-sm">
+                      Click "Deep Research" to get insights about {selectedCompany.company}
                     </p>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
               
               <div>
-                <h3 className="text-lg font-semibold mb-4">Company Contacts</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  * Contact information displayed here would be populated from Compass based on user selection
+                <h3 className="font-semibold mb-2">Company Contacts</h3>
+                <p className="text-sm text-gray-500 mb-2">
+                  * Contact information would be populated from Compass
                 </p>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {selectedCompany.contacts.map((contact) => (
-                    <Card 
+                    <div 
                       key={contact.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      className="border border-gray-300 p-2 cursor-pointer hover:bg-gray-50"
                       onClick={() => handleContactClick(contact)}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold">{contact.name}</h4>
-                            <p className="text-sm text-gray-600">{contact.title}</p>
-                            <div className="flex items-center text-sm text-gray-500 mt-1">
-                              <Mail className="w-3 h-3 mr-1" />
-                              {contact.email}
-                            </div>
-                            <div className="flex items-center text-sm text-gray-500 mt-1">
-                              <Phone className="w-3 h-3 mr-1" />
-                              {contact.phone}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-gray-500">Last Contact</p>
-                            <p className="text-sm font-medium">{new Date(contact.lastContact).toLocaleDateString()}</p>
-                          </div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold">{contact.name}</h4>
+                          <p className="text-sm text-gray-600">{contact.title}</p>
+                          <p className="text-sm text-gray-500">{contact.email}</p>
+                          <p className="text-sm text-gray-500">{contact.phone}</p>
                         </div>
-                      </CardContent>
-                    </Card>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">Last Contact</p>
+                          <p className="text-sm">{new Date(contact.lastContact).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -537,47 +488,40 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
 
       {/* Interaction History Modal */}
       <Dialog open={isInteractionModalOpen} onOpenChange={setIsInteractionModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold flex items-center justify-between">
+            <DialogTitle className="text-lg font-bold flex justify-between items-center">
               <span>Interaction History - {selectedContact?.name}</span>
               {selectedContact && selectedCompany && (
-                <Button
+                <button
                   onClick={() => handleAddTask(selectedContact, selectedCompany.company)}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
                   Add Task
-                </Button>
+                </button>
               )}
             </DialogTitle>
           </DialogHeader>
           
           {selectedContact && (
-            <div className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="space-y-3">
+              <div className="bg-gray-100 p-3 border border-gray-300">
                 <h4 className="font-semibold">{selectedContact.name}</h4>
                 <p className="text-sm text-gray-600">{selectedContact.title}</p>
-                <div className="flex items-center text-sm text-gray-500 mt-1">
-                  <Mail className="w-3 h-3 mr-1" />
-                  {selectedContact.email}
-                </div>
+                <p className="text-sm text-gray-500">{selectedContact.email}</p>
               </div>
               
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Recent Interactions</h3>
-                {getInteractionHistory(selectedContact.id).map((interaction) => (
-                  <Card key={interaction.id} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <Badge className={`px-2 py-1 text-xs ${getInteractionColor(interaction.type)}`}>
-                            <div className="flex items-center space-x-1">
-                              {getInteractionIcon(interaction.type)}
-                              <span className="capitalize">{interaction.type}</span>
-                            </div>
-                          </Badge>
-                          <span className="text-sm font-medium">{interaction.subject}</span>
+              <div>
+                <h3 className="font-semibold mb-2">Recent Interactions</h3>
+                <div className="space-y-2">
+                  {getInteractionHistory(selectedContact.id).map((interaction) => (
+                    <div key={interaction.id} className="border border-gray-300 p-2">
+                      <div className="flex justify-between items-start mb-1">
+                        <div>
+                          <span className={`px-2 py-1 text-xs ${getInteractionColor(interaction.type)}`}>
+                            {interaction.type}
+                          </span>
+                          <span className="text-sm font-medium ml-2">{interaction.subject}</span>
                         </div>
                         <div className="text-right text-sm text-gray-500">
                           <p>{new Date(interaction.date).toLocaleDateString()}</p>
@@ -585,10 +529,9 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
                         </div>
                       </div>
                       <p className="text-sm text-gray-700">{interaction.content}</p>
-                      <p className="text-xs text-gray-500 mt-2">Contact: {interaction.contact}</p>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

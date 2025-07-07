@@ -1,7 +1,5 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Clock, Building2, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Meeting {
@@ -44,47 +42,34 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onBriefClick, showCo
   };
 
   return (
-    <div className="group relative">
-      <div className="flex items-center p-4 rounded-xl border border-slate-200 bg-white hover:border-blue-300 hover:shadow-md transition-all duration-200">
-        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center text-white text-lg mr-4">
-          {getTypeIcon(meeting.type)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+    <div className="border border-gray-300 p-2 mb-2">
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <h4 className="font-semibold text-gray-900">
             {meeting.title}
           </h4>
-          <p className="text-slate-600 flex items-center mt-1">
-            <Building2 className="w-4 h-4 mr-1" />
+          <p className="text-sm text-gray-600 mt-1">
             {meeting.client}
           </p>
-          <div className="flex items-center text-sm text-slate-500 mt-2">
-            <Clock className="w-4 h-4 mr-1" />
+          <p className="text-sm text-gray-500 mt-1">
             {meeting.time}
-          </div>
+          </p>
         </div>
-        <div className="flex-shrink-0 flex flex-col space-y-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+        <div className="flex gap-1">
+          <button 
             onClick={handleJoinCall}
-            className="opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 hover:from-blue-100 hover:to-indigo-100"
+            className="px-2 py-1 text-xs bg-blue-600 text-white hover:bg-blue-700"
           >
             Join
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          </button>
+          <button 
             onClick={() => onBriefClick(meeting)}
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200 hover:from-emerald-100 hover:to-teal-100"
+            className="px-2 py-1 text-xs border border-gray-300 bg-white hover:bg-gray-50"
           >
-            <FileText className="w-3 h-3 mr-1" />
             Brief
-          </Button>
+          </button>
         </div>
       </div>
-      {showConnector && (
-        <div className="absolute left-6 top-16 w-px h-4 bg-slate-200"></div>
-      )}
     </div>
   );
 };

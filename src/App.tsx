@@ -1,7 +1,4 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -20,15 +17,13 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <TaskProvider>
-          <BrowserRouter>
-            <ProtectedRoute>
-              <div className="min-h-screen bg-gray-50">
-                <Header />
+    <AuthProvider>
+      <TaskProvider>
+        <BrowserRouter>
+          <ProtectedRoute>
+            <div className="min-h-screen bg-white">
+              <Header />
+              <div className="container mx-auto px-4 py-4">
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/clients" element={<Clients />} />
@@ -39,11 +34,11 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>
-            </ProtectedRoute>
-          </BrowserRouter>
-        </TaskProvider>
-      </AuthProvider>
-    </TooltipProvider>
+            </div>
+          </ProtectedRoute>
+        </BrowserRouter>
+      </TaskProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

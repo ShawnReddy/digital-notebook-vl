@@ -105,56 +105,67 @@ const Dashboard = () => {
   const myPendingTasks = getMyPendingTasks(tasks, isMyTask);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <DashboardHeader />
+    <div>
+      <h1 className="text-xl font-bold mb-4">Dashboard</h1>
 
-        <StatsOverview
-          meetingsCount={meetings.length}
-          pendingTasksCount={myPendingTasks.length}
-          onPendingTasksClick={() => setIsTaskBreakdownOpen(true)}
-        />
-
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          <div className="xl:col-span-5">
-            <TodaysSchedule meetings={meetings} onBriefClick={handleBriefClick} />
-          </div>
-
-          <div className="xl:col-span-7">
-            <TaskManagementPane 
-              tasks={tasks}
-              onAddPersonalTask={handleAddPersonalTask}
-              onAddManualTask={handleAddManualTask}
-              onAddTaskFromClient={handleAddTaskFromClient}
-              onTaskComplete={handleTaskComplete}
-              onEditTask={handleEditTask}
-              isMyTask={isMyTask}
-            />
+      <div className="mb-4">
+        <div className="border border-gray-300 p-3">
+          <h2 className="font-bold mb-2">Overview</h2>
+          <div className="flex gap-4">
+            <div>
+              <span className="text-sm">Meetings: {meetings.length}</span>
+            </div>
+            <div>
+              <button 
+                onClick={() => setIsTaskBreakdownOpen(true)}
+                className="text-sm underline"
+              >
+                Pending Tasks: {myPendingTasks.length}
+              </button>
+            </div>
           </div>
         </div>
-
-        <DashboardModals
-          isTaskModalOpen={isTaskModalOpen}
-          setIsTaskModalOpen={setIsTaskModalOpen}
-          isPersonalTaskModalOpen={isPersonalTaskModalOpen}
-          setIsPersonalTaskModalOpen={setIsPersonalTaskModalOpen}
-          isBriefModalOpen={isBriefModalOpen}
-          setIsBriefModalOpen={setIsBriefModalOpen}
-          isTaskBreakdownOpen={isTaskBreakdownOpen}
-          setIsTaskBreakdownOpen={setIsTaskBreakdownOpen}
-          editingTask={editingTask}
-          setEditingTask={setEditingTask}
-          editingPersonalTask={editingPersonalTask}
-          setEditingPersonalTask={setEditingPersonalTask}
-          selectedMeeting={selectedMeeting}
-          setSelectedMeeting={setSelectedMeeting}
-          taskModalPreset={taskModalPreset}
-          setTaskModalPreset={setTaskModalPreset}
-          onTaskSave={onTaskSave}
-          onPersonalTaskSave={onPersonalTaskSave}
-          myPendingTasks={myPendingTasks}
-        />
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+          <TodaysSchedule meetings={meetings} onBriefClick={handleBriefClick} />
+        </div>
+
+        <div>
+          <TaskManagementPane 
+            tasks={tasks}
+            onAddPersonalTask={handleAddPersonalTask}
+            onAddManualTask={handleAddManualTask}
+            onAddTaskFromClient={handleAddTaskFromClient}
+            onTaskComplete={handleTaskComplete}
+            onEditTask={handleEditTask}
+            isMyTask={isMyTask}
+          />
+        </div>
+      </div>
+
+      <DashboardModals
+        isTaskModalOpen={isTaskModalOpen}
+        setIsTaskModalOpen={setIsTaskModalOpen}
+        isPersonalTaskModalOpen={isPersonalTaskModalOpen}
+        setIsPersonalTaskModalOpen={setIsPersonalTaskModalOpen}
+        isBriefModalOpen={isBriefModalOpen}
+        setIsBriefModalOpen={setIsBriefModalOpen}
+        isTaskBreakdownOpen={isTaskBreakdownOpen}
+        setIsTaskBreakdownOpen={setIsTaskBreakdownOpen}
+        editingTask={editingTask}
+        setEditingTask={setEditingTask}
+        editingPersonalTask={editingPersonalTask}
+        setEditingPersonalTask={setEditingPersonalTask}
+        selectedMeeting={selectedMeeting}
+        setSelectedMeeting={setSelectedMeeting}
+        taskModalPreset={taskModalPreset}
+        setTaskModalPreset={setTaskModalPreset}
+        onTaskSave={onTaskSave}
+        onPersonalTaskSave={onPersonalTaskSave}
+        myPendingTasks={myPendingTasks}
+      />
     </div>
   );
 };

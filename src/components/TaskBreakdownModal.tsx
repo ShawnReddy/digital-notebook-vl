@@ -1,9 +1,6 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, Flag, Users, UserCheck, UserX, Building, User } from 'lucide-react';
 import { type Task } from '@/data/taskData';
 
 interface TaskBreakdownModalProps {
@@ -15,12 +12,12 @@ interface TaskBreakdownModalProps {
 const TaskBreakdownModal: React.FC<TaskBreakdownModalProps> = ({ isOpen, onClose, tasks }) => {
   const getClientTypeIcon = (type: string) => {
     switch (type) {
-      case 'clients': return <Users className="w-4 h-4 text-blue-600" />;
-      case 'prospects': return <UserCheck className="w-4 h-4 text-green-600" />;
-      case 'inactive': return <UserX className="w-4 h-4 text-gray-600" />;
-      case 'mha': return <Building className="w-4 h-4 text-purple-600" />;
-      case 'personal': return <User className="w-4 h-4 text-indigo-600" />;
-      default: return <Users className="w-4 h-4 text-blue-600" />;
+      case 'clients': return '👥';
+      case 'prospects': return '✅';
+      case 'inactive': return '❌';
+      case 'mha': return '🏢';
+      case 'personal': return '👤';
+      default: return '👥';
     }
   };
 
@@ -45,12 +42,11 @@ const TaskBreakdownModal: React.FC<TaskBreakdownModalProps> = ({ isOpen, onClose
   };
 
   const getPriorityIcon = (priority: string) => {
-    const iconClass = "w-3 h-3";
     switch (priority) {
-      case 'high': return <Flag className={`${iconClass} text-red-500`} fill="currentColor" />;
-      case 'medium': return <Flag className={`${iconClass} text-amber-500`} fill="currentColor" />;
-      case 'low': return <Flag className={`${iconClass} text-emerald-500`} fill="currentColor" />;
-      default: return <Flag className={`${iconClass} text-gray-500`} />;
+      case 'high': return '🔴';
+      case 'medium': return '🟡';
+      case 'low': return '🟢';
+      default: return '⚪';
     }
   };
 
@@ -78,10 +74,10 @@ const TaskBreakdownModal: React.FC<TaskBreakdownModalProps> = ({ isOpen, onClose
 
   const getTagIcon = (tagType: string) => {
     switch (tagType) {
-      case 'company': return <Building className="w-3 h-3" />;
-      case 'person': return <User className="w-3 h-3" />;
-      case 'personal': return <User className="w-3 h-3" />;
-      default: return <Building className="w-3 h-3" />;
+      case 'company': return '🏢';
+      case 'person': return '👤';
+      case 'personal': return '👤';
+      default: return '🏢';
     }
   };
 
@@ -103,90 +99,66 @@ const TaskBreakdownModal: React.FC<TaskBreakdownModalProps> = ({ isOpen, onClose
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center">
-            <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg flex items-center justify-center mr-3">
-              <Flag className="w-4 h-4 text-white" />
-            </div>
+          <DialogTitle className="text-lg font-bold">
             Task Breakdown Overview
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 mt-6">
+        <div className="space-y-4">
           {Object.entries(groupedTasks).map(([clientType, typeTasks]) => (
-            <Card key={clientType} className="border-0 shadow-lg">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
-                  {getClientTypeIcon(clientType)}
-                  <span className="ml-2">{clientTypeLabels[clientType as keyof typeof clientTypeLabels]}</span>
-                  <Badge className={`ml-3 px-2 py-1 text-xs font-medium ${getClientTypeColor(clientType)}`}>
-                    {typeTasks.length} {typeTasks.length === 1 ? 'task' : 'tasks'}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            <div key={clientType} className="border border-gray-300 p-3">
+              <div className="flex items-center mb-3">
+                <span className="mr-2">{getClientTypeIcon(clientType)}</span>
+                <h3 className="font-semibold text-gray-800">
+                  {clientTypeLabels[clientType as keyof typeof clientTypeLabels]}
+                </h3>
+                <span className={`ml-2 px-2 py-1 text-xs ${getClientTypeColor(clientType)}`}>
+                  {typeTasks.length} {typeTasks.length === 1 ? 'task' : 'tasks'}
+                </span>
+              </div>
+              <div className="space-y-2">
                 {typeTasks.map((task) => (
-                  <div key={task.id} className="group relative bg-white border border-slate-200 rounded-xl p-4 hover:shadow-lg hover:shadow-blue-100/50 transition-all duration-300 hover:border-blue-200 hover:-translate-y-0.5">
-                    {/* Priority indicator line */}
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
-                      task.priority === 'high' ? 'bg-red-400' :
-                      task.priority === 'medium' ? 'bg-amber-400' : 'bg-emerald-400'
-                    }`} />
-                    
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1 pr-3">
-                        <h4 className="font-semibold text-slate-900 leading-relaxed group-hover:text-blue-900 transition-colors duration-200 mb-1">
+                  <div key={task.id} className="border border-gray-300 p-2">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 text-sm mb-1">
                           {task.title}
                         </h4>
-                        <div className="flex items-center text-sm text-slate-600 font-medium mb-1">
-                          {getTagIcon(task.tag.type)}
-                          <span className="ml-1">Tagged to: {getTagDisplay(task)}</span>
-                        </div>
+                        <p className="text-xs text-gray-600 mb-1">
+                          {getTagIcon(task.tag.type)} Tagged to: {getTagDisplay(task)}
+                        </p>
                         {task.source === 'compass' && (
-                          <Badge variant="outline" className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200">
+                          <span className="text-xs px-1 py-0.5 bg-blue-100 text-blue-700 border border-blue-300">
                             Compass
-                          </Badge>
+                          </span>
                         )}
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge className={`px-3 py-1 text-xs font-medium rounded-full border ${getPriorityColor(task.priority)} flex items-center space-x-1`}>
-                          {getPriorityIcon(task.priority)}
-                          <span className="capitalize">{task.priority}</span>
-                        </Badge>
+                      <div className="flex items-center gap-1">
+                        <span className={`px-2 py-1 text-xs ${getPriorityColor(task.priority)}`}>
+                          {getPriorityIcon(task.priority)} {task.priority}
+                        </span>
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-slate-600">
-                        <div className="w-7 h-7 bg-gradient-to-br from-slate-200 to-slate-300 rounded-full flex items-center justify-center text-xs font-bold mr-2 shadow-sm">
-                          {getInitials(task.assignee)}
-                        </div>
-                        <span className="font-medium text-sm">{task.assignee}</span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-3 text-slate-500">
-                        <div className="flex items-center bg-slate-50 px-2 py-1 rounded-full">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          <span className="text-xs font-medium">{formatDate(task.dueDate)}</span>
-                        </div>
-                        <div className="flex items-center bg-slate-50 px-2 py-1 rounded-full">
-                          <Clock className="w-3 h-3 mr-1" />
-                          <span className="text-xs font-medium">{task.dueTime}</span>
-                        </div>
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <span>Assigned to: {task.assignee}</span>
+                      <div className="flex gap-2">
+                        <span>{formatDate(task.dueDate)}</span>
+                        <span>{task.dueTime}</span>
                       </div>
                     </div>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
           
           {Object.keys(groupedTasks).length === 0 && (
-            <div className="text-center py-12 text-slate-500">
-              <Flag className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-              <p className="text-lg font-medium">No pending tasks</p>
-              <p className="text-sm">You're all caught up! Great work.</p>
+            <div className="text-center py-6 text-gray-500">
+              <p className="text-sm">No pending tasks</p>
+              <p className="text-xs">You're all caught up!</p>
             </div>
           )}
         </div>
@@ -196,3 +168,4 @@ const TaskBreakdownModal: React.FC<TaskBreakdownModalProps> = ({ isOpen, onClose
 };
 
 export default TaskBreakdownModal;
+
