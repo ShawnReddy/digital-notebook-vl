@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import TaskModal from '@/components/TaskModal';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { type Task } from '@/data/taskData';
+import CompanyTile from '@/components/CompanyTile';
+import CompanyModal from '@/components/CompanyModal';
 
 interface Contact {
   id: string;
@@ -21,15 +22,7 @@ interface Contact {
   lastContact: string;
 }
 
-interface InteractionHistory {
-  id: string;
-  type: 'email' | 'call' | 'meeting' | 'note';
-  date: string;
-  time: string;
-  subject: string;
-  content: string;
-  contact: string;
-}
+
 
 interface Prospect {
   id: string;
@@ -39,7 +32,7 @@ interface Prospect {
   phone: string;
   location: string;
   potentialRevenue: string;
-  stage: 'cold' | 'warm' | 'hot';
+  stage: 'Prime' | 'Focus' | 'Emerging';
   lastContact: string;
   selected: boolean;
   contacts: Contact[];
@@ -61,12 +54,8 @@ const Prospects = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Prospect | null>(null);
-  const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [isResearching, setIsResearching] = useState(false);
-  const [researchData, setResearchData] = useState<string | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [taskPreset, setTaskPreset] = useState<{company: string, person: string} | null>(null);
+  const [taskPreset, setTaskPreset] = useState<{account: string, contact: string} | null>(null);
   const { toast } = useToast();
   
   const [prospects, setProspects] = useState<Prospect[]>([
@@ -78,7 +67,7 @@ const Prospects = () => {
       phone: '+1 (555) 234-5678',
       location: 'Seattle, WA',
       potentialRevenue: '$150K',
-      stage: 'hot',
+      stage: 'Prime',
       lastContact: '2024-12-29',
       selected: false,
       contacts: [
@@ -108,7 +97,7 @@ const Prospects = () => {
       phone: '+1 (555) 345-6789',
       location: 'Denver, CO',
       potentialRevenue: '$200K',
-      stage: 'warm',
+      stage: 'Focus',
       lastContact: '2024-12-26',
       selected: false,
       contacts: [
@@ -130,7 +119,7 @@ const Prospects = () => {
       phone: '+1 (555) 456-7891',
       location: 'Miami, FL',
       potentialRevenue: '$300K',
-      stage: 'cold',
+      stage: 'Focus',
       lastContact: '2024-12-15',
       selected: false,
       contacts: [
@@ -160,7 +149,7 @@ const Prospects = () => {
       phone: '+1 (555) 567-8901',
       location: 'Boston, MA',
       potentialRevenue: '$180K',
-      stage: 'hot',
+      stage: 'Emerging',
       lastContact: '2024-12-28',
       selected: false,
       contacts: [
@@ -176,48 +165,7 @@ const Prospects = () => {
     }
   ]);
 
-  // Mock interaction history data - Note: In production, this would come from Compass
-  const getInteractionHistory = (contactId: string): InteractionHistory[] => {
-    const mockHistory: InteractionHistory[] = [
-      {
-        id: '1',
-        type: 'email',
-        date: '2024-12-29',
-        time: '9:15 AM',
-        subject: 'Initial Proposal Discussion',
-        content: 'Sent initial proposal and pricing information. Prospect showed strong interest in our solution.',
-        contact: 'Lisa Thompson'
-      },
-      {
-        id: '2',
-        type: 'call',
-        date: '2024-12-26',
-        time: '3:30 PM',
-        subject: 'Discovery Call',
-        content: 'Conducted discovery call to understand their current pain points and requirements.',
-        contact: 'Lisa Thompson'
-      },
-      {
-        id: '3',
-        type: 'meeting',
-        date: '2024-12-23',
-        time: '1:00 PM',
-        subject: 'Product Demo',
-        content: 'Delivered comprehensive product demonstration. Positive feedback from technical team.',
-        contact: 'Lisa Thompson'
-      },
-      {
-        id: '4',
-        type: 'note',
-        date: '2024-12-22',
-        time: '4:20 PM',
-        subject: 'Internal Note',
-        content: 'Follow-up scheduled for next week. Decision timeline is Q1 2025. High probability of conversion.',
-        contact: 'Internal'
-      }
-    ];
-    return mockHistory;
-  };
+
 
   const handleProspectSelect = (prospectId: string) => {
     setProspects(prospects.map(prospect => 
@@ -242,39 +190,12 @@ const Prospects = () => {
     setIsCompanyModalOpen(true);
   };
 
-  const handleContactClick = (contact: Contact) => {
-    setSelectedContact(contact);
-    setIsInteractionModalOpen(true);
-  };
 
-  const handleDeepResearch = async () => {
-    if (!selectedCompany) return;
-    
-    setIsResearching(true);
-    setResearchData(null);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      const mockResearchData = `${selectedCompany.company} is an emerging prospect with significant potential for partnership.
-
-Key insights:
-• Growing company with expanding market presence
-• Actively seeking technology solutions and partnerships
-• Strong leadership team with vision for growth
-• Current challenges include scaling operations and efficiency
-• High potential for conversion with our value proposition
-
-Competitive analysis shows they are evaluating multiple vendors, but our solution offers unique advantages in cost-effectiveness and implementation speed.`;
-      
-      setResearchData(mockResearchData);
-      setIsResearching(false);
-    }, 2000);
-  };
 
   const handleAddTask = (contact: Contact, company: string) => {
     setTaskPreset({
-      company: company,
-      person: contact.name
+      account: company,
+      contact: contact.name
     });
     setIsTaskModalOpen(true);
   };
@@ -298,25 +219,7 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
     }
   };
 
-  const getInteractionIcon = (type: string) => {
-    switch (type) {
-      case 'email': return <Mail className="w-4 h-4" />;
-      case 'call': return <PhoneCall className="w-4 h-4" />;
-      case 'meeting': return <Calendar className="w-4 h-4" />;
-      case 'note': return <FileText className="w-4 h-4" />;
-      default: return <MessageSquare className="w-4 h-4" />;
-    }
-  };
 
-  const getInteractionColor = (type: string) => {
-    switch (type) {
-      case 'email': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'call': return 'bg-green-50 text-green-700 border-green-200';
-      case 'meeting': return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'note': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
-  };
 
   const filteredProspects = prospects.filter(prospect => {
     const matchesSearch = prospect.company.toLowerCase().includes(searchTerm.toLowerCase());
@@ -381,33 +284,22 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
       {/* Prospects List */}
       <div className="space-y-2">
         {filteredProspects.map((prospect) => (
-          <div 
-            key={prospect.id} 
-            className="border border-gray-300 p-3 cursor-pointer hover:bg-gray-50"
+          <CompanyTile
+            key={prospect.id}
+            id={prospect.id}
+            name={prospect.company}
+            location={prospect.location}
+            status={prospect.stage}
+            statusColor={getStageColor(prospect.stage)}
+            selected={prospect.selected}
+            onSelect={handleProspectSelect}
             onClick={() => handleProspectClick(prospect)}
           >
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={prospect.selected}
-                  onChange={() => handleProspectSelect(prospect.id)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <div>
-                  <h3 className="font-semibold text-gray-900">{prospect.company}</h3>
-                  <p className="text-sm text-gray-600">{prospect.location}</p>
-                </div>
-              </div>
-              <span className={`px-2 py-1 text-xs ${getStageColor(prospect.stage)}`}>
-                {prospect.stage}
-              </span>
-            </div>
             <div className="flex justify-between text-sm text-gray-600">
               <span>Potential Revenue: {prospect.potentialRevenue}</span>
               <span>Last Contact: {new Date(prospect.lastContact).toLocaleDateString()}</span>
             </div>
-          </div>
+          </CompanyTile>
         ))}
       </div>
 
@@ -417,126 +309,20 @@ Competitive analysis shows they are evaluating multiple vendors, but our solutio
         </div>
       )}
 
-      {/* Company Details Modal */}
-      <Dialog open={isCompanyModalOpen} onOpenChange={setIsCompanyModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">{selectedCompany?.company}</DialogTitle>
-          </DialogHeader>
-          
-          {selectedCompany && (
-            <div className="space-y-4">
-              {/* Deep Research Section */}
-              <div className="border border-gray-300 p-3">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold">Company Intelligence</h3>
-                  <button
-                    onClick={handleDeepResearch}
-                    disabled={isResearching}
-                    className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700"
-                  >
-                    {isResearching ? 'Loading...' : 'Deep Research'}
-                  </button>
-                </div>
-                <div>
-                  {researchData ? (
-                    <div className="bg-gray-100 p-3 border border-gray-300">
-                      <pre className="whitespace-pre-wrap text-sm">
-                        {researchData}
-                      </pre>
-                    </div>
-                  ) : (
-                    <p className="text-gray-600 text-sm">
-                      Click "Deep Research" to get insights about {selectedCompany.company}
-                    </p>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold mb-2">Company Contacts</h3>
-                <p className="text-sm text-gray-500 mb-2">
-                  * Contact information would be populated from Compass
-                </p>
-                <div className="space-y-2">
-                  {selectedCompany.contacts.map((contact) => (
-                    <div 
-                      key={contact.id}
-                      className="border border-gray-300 p-2 cursor-pointer hover:bg-gray-50"
-                      onClick={() => handleContactClick(contact)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-semibold">{contact.name}</h4>
-                          <p className="text-sm text-gray-600">{contact.title}</p>
-                          <p className="text-sm text-gray-500">{contact.email}</p>
-                          <p className="text-sm text-gray-500">{contact.phone}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-gray-500">Last Contact</p>
-                          <p className="text-sm">{new Date(contact.lastContact).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Interaction History Modal */}
-      <Dialog open={isInteractionModalOpen} onOpenChange={setIsInteractionModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex justify-between items-center">
-              <span>Interaction History - {selectedContact?.name}</span>
-              {selectedContact && selectedCompany && (
-                <button
-                  onClick={() => handleAddTask(selectedContact, selectedCompany.company)}
-                  className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700"
-                >
-                  Add Task
-                </button>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedContact && (
-            <div className="space-y-3">
-              <div className="bg-gray-100 p-3 border border-gray-300">
-                <h4 className="font-semibold">{selectedContact.name}</h4>
-                <p className="text-sm text-gray-600">{selectedContact.title}</p>
-                <p className="text-sm text-gray-500">{selectedContact.email}</p>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold mb-2">Recent Interactions</h3>
-                <div className="space-y-2">
-                  {getInteractionHistory(selectedContact.id).map((interaction) => (
-                    <div key={interaction.id} className="border border-gray-300 p-2">
-                      <div className="flex justify-between items-start mb-1">
-                        <div>
-                          <span className={`px-2 py-1 text-xs ${getInteractionColor(interaction.type)}`}>
-                            {interaction.type}
-                          </span>
-                          <span className="text-sm font-medium ml-2">{interaction.subject}</span>
-                        </div>
-                        <div className="text-right text-sm text-gray-500">
-                          <p>{new Date(interaction.date).toLocaleDateString()}</p>
-                          <p>{interaction.time}</p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-700">{interaction.content}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Company Modal */}
+      <CompanyModal
+        isOpen={isCompanyModalOpen}
+        onClose={() => setIsCompanyModalOpen(false)}
+        company={selectedCompany ? {
+          id: selectedCompany.id,
+          name: selectedCompany.company,
+          location: selectedCompany.location,
+          contacts: selectedCompany.contacts,
+          type: 'prospect' as const,
+          potentialRevenue: selectedCompany.potentialRevenue,
+          lastContact: selectedCompany.lastContact
+        } : null}
+      />
 
       {/* Task Modal */}
       <TaskModal

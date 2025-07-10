@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { type Task } from '@/data/taskData';
+import CompanyTile from '@/components/CompanyTile';
 
 interface MHAOffice {
   id: string;
@@ -9,7 +10,7 @@ interface MHAOffice {
   contactPerson: string;
   email: string;
   phone: string;
-  status: 'active' | 'pending' | 'completed';
+  status: 'Prime' | 'Emerging' | 'Focus';
   lastContact: string;
   selected: boolean;
 }
@@ -25,45 +26,45 @@ const MHA = () => {
   const [mhaOffices, setMhaOffices] = useState<MHAOffice[]>([
     {
       id: '1',
-      name: 'MHA Regional Office - Northeast',
+      name: 'ITC Vegas',
       location: 'Boston, MA',
       contactPerson: 'Dr. Sarah Wilson',
       email: 's.wilson@mha.gov',
       phone: '+1 (555) 123-4567',
-      status: 'active',
+      status: 'Emerging',
       lastContact: '2024-12-28',
       selected: false
     },
     {
       id: '2',
-      name: 'MHA Regional Office - Southeast',
+      name: 'HIMMS',
       location: 'Atlanta, GA',
       contactPerson: 'Dr. Michael Chen',
       email: 'm.chen@mha.gov',
       phone: '+1 (555) 234-5678',
-      status: 'pending',
+      status: 'Focus',
       lastContact: '2024-12-20',
       selected: false
     },
     {
       id: '3',
-      name: 'MHA Regional Office - Midwest',
+      name: 'Microsoft',
       location: 'Chicago, IL',
       contactPerson: 'Dr. Emily Rodriguez',
       email: 'e.rodriguez@mha.gov',
       phone: '+1 (555) 345-6789',
-      status: 'completed',
+      status: 'Emerging',
       lastContact: '2024-12-15',
       selected: false
     },
     {
       id: '4',
-      name: 'MHA Regional Office - West',
+      name: 'Regional Office - West',
       location: 'San Francisco, CA',
       contactPerson: 'Dr. James Thompson',
       email: 'j.thompson@mha.gov',
       phone: '+1 (555) 456-7890',
-      status: 'active',
+      status: 'Emerging',
       lastContact: '2024-12-29',
       selected: false
     }
@@ -81,9 +82,9 @@ const MHA = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-300';
-      case 'pending': return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'Prime': return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'Focus': return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'Emerging': return 'bg-gray-100 text-gray-800 border-gray-300';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
@@ -97,8 +98,7 @@ const MHA = () => {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-xl font-bold text-gray-900 mb-2">MHA Offices</h1>
-        <p className="text-sm text-gray-600">Manage Mental Health Administration relationships.</p>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Must Have Accounts</h1>
       </div>
 
       {/* Search and Filters */}
@@ -129,9 +129,9 @@ const MHA = () => {
                 className="px-2 py-1 border border-gray-300"
               >
                 <option value="all">All</option>
-                <option value="active">Active</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
+                <option value="Prime">Prime</option>
+                <option value="Focus">Focus</option>
+                <option value="Emerging">Emerging</option>
               </select>
             </div>
           </div>
@@ -141,26 +141,17 @@ const MHA = () => {
       {/* Office List */}
       <div className="space-y-2">
         {filteredOffices.map((office) => (
-          <div 
-            key={office.id} 
-            className="border border-gray-300 p-3"
+          <CompanyTile
+            key={office.id}
+            id={office.id}
+            name={office.name}
+            location={office.location}
+            status={office.status}
+            statusColor={getStatusColor(office.status)}
+            selected={office.selected}
+            onSelect={handleOfficeSelect}
+            onClick={() => {}}
           >
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={office.selected}
-                  onChange={() => handleOfficeSelect(office.id)}
-                />
-                <div>
-                  <h3 className="font-semibold text-gray-900">{office.name}</h3>
-                  <p className="text-sm text-gray-600">{office.location}</p>
-                </div>
-              </div>
-              <span className={`px-2 py-1 text-xs ${getStatusColor(office.status)}`}>
-                {office.status}
-              </span>
-            </div>
             <div className="text-sm text-gray-600 mb-1">
               Contact: {office.contactPerson}
             </div>
@@ -168,7 +159,7 @@ const MHA = () => {
               <span>{office.email}</span>
               <span>Last Contact: {new Date(office.lastContact).toLocaleDateString()}</span>
             </div>
-          </div>
+          </CompanyTile>
         ))}
       </div>
 

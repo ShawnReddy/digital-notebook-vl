@@ -8,7 +8,7 @@ interface Event {
   date: string;
   time: string;
   location: string;
-  type: 'conference' | 'meeting' | 'webinar' | 'workshop';
+  type: 'conference';
   attendees: number;
   status: 'upcoming' | 'ongoing' | 'completed';
   selected: boolean;
@@ -40,7 +40,7 @@ const Events = () => {
       date: '2025-01-20',
       time: '2:00 PM - 4:00 PM',
       location: 'Main Office',
-      type: 'meeting',
+      type: 'conference',
       attendees: 25,
       status: 'upcoming',
       selected: false
@@ -51,7 +51,7 @@ const Events = () => {
       date: '2025-01-10',
       time: '1:00 PM - 2:30 PM',
       location: 'Virtual',
-      type: 'webinar',
+      type: 'conference',
       attendees: 75,
       status: 'upcoming',
       selected: false
@@ -62,7 +62,7 @@ const Events = () => {
       date: '2024-12-15',
       time: '10:00 AM - 3:00 PM',
       location: 'Training Room A',
-      type: 'workshop',
+      type: 'conference',
       attendees: 30,
       status: 'completed',
       selected: false
@@ -107,7 +107,7 @@ const Events = () => {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Events</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Growth Events</h1>
         <p className="text-sm text-gray-600">Manage company events and meetings.</p>
       </div>
 

@@ -19,15 +19,29 @@ interface TaskFormData {
 interface UseTaskFormProps {
   task?: Task | null;
   preset?: {
-    company: string;
-    person: string;
+    account: string;
+    contact: string;
   } | null;
   isOpen: boolean;
 }
 
+// Team members for assignment
+export const teamMembers = [
+  'Shawn Reddy',
+  'Sarah Johnson',
+  'Mike Chen',
+  'Lisa Wang',
+  'David Rodriguez',
+  'Alex Thompson',
+  'Jennifer Lee',
+  'Robert Kim',
+  'Amanda Foster',
+  'Kevin O\'Brien'
+];
+
 export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
   const { userProfile } = useAuth();
-  const currentUserName = userProfile?.full_name || 'Shawn';
+  const currentUserName = userProfile?.full_name || 'Shawn Reddy';
 
   const [formData, setFormData] = useState<TaskFormData>({
     title: '',
@@ -38,7 +52,7 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
     status: 'pending',
     category: 'today',
     tag: {
-      type: 'company',
+      type: 'account',
       name: ''
     },
     source: 'manual',
@@ -49,7 +63,7 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
     if (task) {
       setFormData({
         title: task.title,
-        assignee: currentUserName, // Always assign to current user
+        assignee: task.assignee, // Keep original assignee for editing
         dueDate: task.dueDate,
         dueTime: task.dueTime,
         priority: task.priority,
@@ -69,9 +83,9 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
         status: 'pending',
         category: 'today',
         tag: {
-          type: 'person',
-          name: preset.person,
-          company: preset.company
+          type: 'contact',
+          name: preset.contact,
+          account: preset.account
         },
         source: 'manual',
         clientType: 'clients'
@@ -86,7 +100,7 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
         status: 'pending',
         category: 'today',
         tag: {
-          type: 'company',
+          type: 'account',
           name: ''
         },
         source: 'manual',
@@ -102,26 +116,26 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
     }));
   };
 
-  const handleTagTypeChange = (type: 'company' | 'person' | 'personal') => {
+  const handleTagTypeChange = (type: 'account' | 'contact' | 'personal') => {
     setFormData(prev => ({
       ...prev,
       tag: {
         type,
         name: '',
-        ...(type === 'person' ? { company: '' } : {})
+        ...(type === 'contact' ? { account: '' } : {})
       },
       clientType: type === 'personal' ? 'personal' : 'clients'
     }));
   };
 
-  const handleTagNameChange = (name: string, people?: Array<{ name: string; company: string }>) => {
-    if (formData.tag.type === 'person') {
+  const handleTagNameChange = (name: string, people?: Array<{ name: string; account: string }>) => {
+    if (formData.tag.type === 'contact') {
       setFormData(prev => ({
         ...prev,
         tag: {
           ...prev.tag,
           name,
-          company: prev.tag.company || ''
+          account: prev.tag.account || ''
         }
       }));
     } else {
@@ -135,14 +149,14 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
     }
   };
 
-  const handleTagCompanyChange = (company: string) => {
-    if (formData.tag.type === 'person') {
+  const handleTagAccountChange = (account: string) => {
+    if (formData.tag.type === 'contact') {
       setFormData(prev => ({
         ...prev,
         tag: {
           ...prev.tag,
-          company,
-          name: '' // Reset person name when company changes
+          account,
+          name: '' // Reset contact name when account changes
         }
       }));
     }
@@ -154,6 +168,6 @@ export const useTaskForm = ({ task, preset, isOpen }: UseTaskFormProps) => {
     handleInputChange,
     handleTagTypeChange,
     handleTagNameChange,
-    handleTagCompanyChange
+    handleTagAccountChange
   };
 };

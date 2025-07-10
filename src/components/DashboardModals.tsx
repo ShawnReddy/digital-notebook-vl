@@ -15,54 +15,46 @@ interface Meeting {
 }
 
 interface DashboardModalsProps {
-  isTaskModalOpen: boolean;
-  setIsTaskModalOpen: (open: boolean) => void;
-  isPersonalTaskModalOpen: boolean;
-  setIsPersonalTaskModalOpen: (open: boolean) => void;
-  isBriefModalOpen: boolean;
-  setIsBriefModalOpen: (open: boolean) => void;
-  isTaskBreakdownOpen: boolean;
-  setIsTaskBreakdownOpen: (open: boolean) => void;
+  showTaskModal: boolean;
+  setShowTaskModal: (show: boolean) => void;
+  showPersonalTaskModal: boolean;
+  setShowPersonalTaskModal: (show: boolean) => void;
+  showTaskBreakdownModal: boolean;
+  setShowTaskBreakdownModal: (show: boolean) => void;
   editingTask: Task | null;
   setEditingTask: (task: Task | null) => void;
   editingPersonalTask: PersonalTask | null;
   setEditingPersonalTask: (task: PersonalTask | null) => void;
-  selectedMeeting: Meeting | null;
-  setSelectedMeeting: (meeting: Meeting | null) => void;
-  taskModalPreset: { company: string; person: string } | null;
-  setTaskModalPreset: (preset: { company: string; person: string } | null) => void;
-  onTaskSave: (taskData: Omit<Task, 'id'>) => void;
-  onPersonalTaskSave: (taskData: Omit<PersonalTask, 'id'>) => void;
-  myPendingTasks: Task[];
+  taskModalPreset: { account: string; contact: string } | null;
+  setTaskModalPreset: (preset: { account: string; contact: string } | null) => void;
+  onTaskSave: (task: Omit<Task, 'id'>) => void;
+  onPersonalTaskSave: (task: Omit<PersonalTask, 'id'>) => void;
+  onTaskComplete: (taskId: string) => void;
 }
 
 const DashboardModals: React.FC<DashboardModalsProps> = ({
-  isTaskModalOpen,
-  setIsTaskModalOpen,
-  isPersonalTaskModalOpen,
-  setIsPersonalTaskModalOpen,
-  isBriefModalOpen,
-  setIsBriefModalOpen,
-  isTaskBreakdownOpen,
-  setIsTaskBreakdownOpen,
+  showTaskModal,
+  setShowTaskModal,
+  showPersonalTaskModal,
+  setShowPersonalTaskModal,
+  showTaskBreakdownModal,
+  setShowTaskBreakdownModal,
   editingTask,
   setEditingTask,
   editingPersonalTask,
   setEditingPersonalTask,
-  selectedMeeting,
-  setSelectedMeeting,
   taskModalPreset,
   setTaskModalPreset,
   onTaskSave,
   onPersonalTaskSave,
-  myPendingTasks
+  onTaskComplete
 }) => {
   return (
     <>
       <TaskModal
-        isOpen={isTaskModalOpen}
+        isOpen={showTaskModal}
         onClose={() => {
-          setIsTaskModalOpen(false);
+          setShowTaskModal(false);
           setEditingTask(null);
           setTaskModalPreset(null);
         }}
@@ -72,28 +64,19 @@ const DashboardModals: React.FC<DashboardModalsProps> = ({
       />
 
       <PersonalTaskModal
-        isOpen={isPersonalTaskModalOpen}
+        isOpen={showPersonalTaskModal}
         onClose={() => {
-          setIsPersonalTaskModalOpen(false);
+          setShowPersonalTaskModal(false);
           setEditingPersonalTask(null);
         }}
         onSave={onPersonalTaskSave}
         task={editingPersonalTask}
       />
 
-      <BriefModal
-        isOpen={isBriefModalOpen}
-        onClose={() => {
-          setIsBriefModalOpen(false);
-          setSelectedMeeting(null);
-        }}
-        meeting={selectedMeeting}
-      />
-
       <TaskBreakdownModal
-        isOpen={isTaskBreakdownOpen}
-        onClose={() => setIsTaskBreakdownOpen(false)}
-        tasks={myPendingTasks}
+        isOpen={showTaskBreakdownModal}
+        onClose={() => setShowTaskBreakdownModal(false)}
+        tasks={[]}
       />
     </>
   );

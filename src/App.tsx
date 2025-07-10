@@ -11,6 +11,8 @@ import Prospects from "./pages/Prospects";
 import InactiveClients from "./pages/InactiveClients";
 import MHA from "./pages/MHA";
 import Events from "./pages/Events";
+import ClientAlumni from "./pages/ClientAlumni";
+import OtherTasks from "./pages/OtherTasks";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
                   <Route path="/inactive" element={<InactiveClients />} />
                   <Route path="/mha" element={<MHA />} />
                   <Route path="/events" element={<Events />} />
+                  <Route path="/alumni" element={<ClientAlumni />} />
+                  <Route path="/tasks" element={<OtherTasks />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>

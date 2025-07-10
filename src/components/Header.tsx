@@ -1,18 +1,19 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
   const { userProfile, signOut } = useAuth();
   
   const navItems = [
-    { name: 'Dashboard', path: '/' },
     { name: 'Clients', path: '/clients' },
     { name: 'Prospects', path: '/prospects' },
+    { name: 'Client Alumni', path: '/alumni' },
     { name: 'Inactive Clients', path: '/inactive' },
     { name: 'MHA', path: '/mha' },
-    { name: 'Events', path: '/events' },
+    { name: 'Growth Events', path: '/events' },
+    { name: 'Other Tasks', path: '/tasks' },
   ];
 
   const getInitials = (name: string) => {
@@ -27,9 +28,9 @@ const Header = () => {
         <div className="flex justify-between items-center h-12">
           {/* Logo Section */}
           <div className="flex items-center">
-            <h1 className="text-lg font-bold text-white">
-              Digital Notebook
-            </h1>
+            <Link to="/" className="text-lg font-bold text-white hover:text-blue-200 transition-colors">
+              Sage Planner
+            </Link>
           </div>
           
           {/* Navigation */}

@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import TaskModal from '@/components/TaskModal';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { type Task } from '@/data/taskData';
+import CompanyTile from '@/components/CompanyTile';
+import CompanyModal from '@/components/CompanyModal';
 
 interface Contact {
   id: string;
@@ -21,15 +22,7 @@ interface Contact {
   lastContact: string;
 }
 
-interface InteractionHistory {
-  id: string;
-  type: 'email' | 'call' | 'meeting' | 'note';
-  date: string;
-  time: string;
-  subject: string;
-  content: string;
-  contact: string;
-}
+
 
 interface InactiveClient {
   id: string;
@@ -59,12 +52,8 @@ const InactiveClients = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<InactiveClient | null>(null);
-  const [isInteractionModalOpen, setIsInteractionModalOpen] = useState(false);
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [isResearching, setIsResearching] = useState(false);
-  const [researchData, setResearchData] = useState<string | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [taskPreset, setTaskPreset] = useState<{company: string, person: string} | null>(null);
+  const [taskPreset, setTaskPreset] = useState<{account: string, contact: string} | null>(null);
   const { toast } = useToast();
   
   const [inactiveClients, setInactiveClients] = useState<InactiveClient[]>([
@@ -106,44 +95,12 @@ const InactiveClients = () => {
     }
   ]);
 
-  // Mock interaction history data - Note: In production, this would come from Compass
-  const getInteractionHistory = (contactId: string): InteractionHistory[] => {
-    const mockHistory: InteractionHistory[] = [
-      {
-        id: '1',
-        type: 'email',
-        date: '2023-05-15',
-        time: '9:00 AM',
-        subject: 'Initial Contact',
-        content: 'Initial email sent to introduce our services.',
-        contact: 'John Doe'
-      },
-      {
-        id: '2',
-        type: 'call',
-        date: '2023-05-10',
-        time: '2:00 PM',
-        subject: 'Follow-up Call',
-        content: 'Follow-up call to discuss potential partnership.',
-        contact: 'Jane Smith'
-      },
-      {
-        id: '3',
-        type: 'note',
-        date: '2023-05-01',
-        time: '4:00 PM',
-        subject: 'Internal Note',
-        content: 'Client expressed interest but cited budget constraints.',
-        contact: 'Internal'
-      }
-    ];
-    return mockHistory;
-  };
+
 
   const handleAddTask = (contact: Contact, company: string) => {
     setTaskPreset({
-      company: company,
-      person: contact.name
+      account: company,
+      contact: contact.name
     });
     setIsTaskModalOpen(true);
   };
@@ -184,30 +141,9 @@ const InactiveClients = () => {
     setIsCompanyModalOpen(true);
   };
 
-  const handleContactClick = (contact: Contact) => {
-    setSelectedContact(contact);
-    setIsInteractionModalOpen(true);
-  };
 
-  const getInteractionIcon = (type: string) => {
-    switch (type) {
-      case 'email': return <Mail className="w-4 h-4" />;
-      case 'call': return <PhoneCall className="w-4 h-4" />;
-      case 'meeting': return <Calendar className="w-4 h-4" />;
-      case 'note': return <FileText className="w-4 h-4" />;
-      default: return <MessageSquare className="w-4 h-4" />;
-    }
-  };
 
-  const getInteractionColor = (type: string) => {
-    switch (type) {
-      case 'email': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'call': return 'bg-green-50 text-green-700 border-green-200';
-      case 'meeting': return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'note': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
-  };
+
 
   const filteredClients = inactiveClients.filter(client => {
     const matchesSearch = client.company.toLowerCase().includes(searchTerm.toLowerCase());
@@ -273,28 +209,17 @@ const InactiveClients = () => {
       {/* Inactive Clients List */}
       <div className="space-y-2">
         {filteredClients.map((client) => (
-          <div 
-            key={client.id} 
-            className="border border-gray-300 p-3 cursor-pointer hover:bg-gray-50"
+          <CompanyTile
+            key={client.id}
+            id={client.id}
+            name={client.company}
+            location={client.location}
+            status="Inactive"
+            statusColor="bg-gray-100 text-gray-800 border border-gray-300"
+            selected={client.selected}
+            onSelect={handleClientSelect}
             onClick={() => handleClientClick(client)}
           >
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={client.selected}
-                  onChange={() => handleClientSelect(client.id)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <div>
-                  <h3 className="font-semibold text-gray-900">{client.company}</h3>
-                  <p className="text-sm text-gray-600">{client.location}</p>
-                </div>
-              </div>
-              <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 border border-gray-300">
-                Inactive
-              </span>
-            </div>
             <div className="flex justify-between text-sm text-gray-600">
               <span>Last Revenue: {client.lastRevenue}</span>
               <span>Inactive since: {new Date(client.inactiveDate).toLocaleDateString()}</span>
@@ -302,7 +227,7 @@ const InactiveClients = () => {
             <div className="text-sm text-gray-500 mt-1">
               Reason: {client.reason}
             </div>
-          </div>
+          </CompanyTile>
         ))}
       </div>
 
@@ -312,80 +237,21 @@ const InactiveClients = () => {
         </div>
       )}
 
-      {/* Company Details Modal */}
-      <Dialog open={isCompanyModalOpen} onOpenChange={setIsCompanyModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold">{selectedCompany?.company}</DialogTitle>
-          </DialogHeader>
-          
-          {selectedCompany && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-2">Company Contacts</h3>
-                <p className="text-sm text-gray-500 mb-2">
-                  * Contact information would be populated from Compass
-                </p>
-                <div className="space-y-2">
-                  {/* Add contact information display here */}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Interaction History Modal */}
-      <Dialog open={isInteractionModalOpen} onOpenChange={setIsInteractionModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex justify-between items-center">
-              <span>Interaction History - {selectedContact?.name}</span>
-              {selectedContact && selectedCompany && (
-                <button
-                  onClick={() => handleAddTask(selectedContact, selectedCompany.company)}
-                  className="px-3 py-1 bg-blue-600 text-white hover:bg-blue-700"
-                >
-                  Add Task
-                </button>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedContact && (
-            <div className="space-y-3">
-              <div className="bg-gray-100 p-3 border border-gray-300">
-                <h4 className="font-semibold">{selectedContact.name}</h4>
-                <p className="text-sm text-gray-600">{selectedContact.title}</p>
-                <p className="text-sm text-gray-500">{selectedContact.email}</p>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold mb-2">Recent Interactions</h3>
-                <div className="space-y-2">
-                  {getInteractionHistory(selectedContact.id).map((interaction) => (
-                    <div key={interaction.id} className="border border-gray-300 p-2">
-                      <div className="flex justify-between items-start mb-1">
-                        <div>
-                          <span className={`px-2 py-1 text-xs ${getInteractionColor(interaction.type)}`}>
-                            {interaction.type}
-                          </span>
-                          <span className="text-sm font-medium ml-2">{interaction.subject}</span>
-                        </div>
-                        <div className="text-right text-sm text-gray-500">
-                          <p>{new Date(interaction.date).toLocaleDateString()}</p>
-                          <p>{interaction.time}</p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-700">{interaction.content}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Company Modal */}
+      <CompanyModal
+        isOpen={isCompanyModalOpen}
+        onClose={() => setIsCompanyModalOpen(false)}
+        company={selectedCompany ? {
+          id: selectedCompany.id,
+          name: selectedCompany.company,
+          location: selectedCompany.location,
+          contacts: [], // Inactive clients don't have contacts in the current data structure
+          type: 'inactive' as const,
+          lastRevenue: selectedCompany.lastRevenue,
+          inactiveDate: selectedCompany.inactiveDate,
+          reason: selectedCompany.reason
+        } : null}
+      />
 
       {/* Task Modal */}
       <TaskModal

@@ -30,9 +30,9 @@ const TodaysSchedule: React.FC<TodaysScheduleProps> = ({ meetings, onBriefClick 
                 <div className="text-sm">{meeting.time}</div>
                 <button 
                   onClick={() => onBriefClick(meeting)}
-                  className="text-xs underline"
+                  className="text-xs bg-blue-600 text-white px-2 py-1 rounded-md"
                 >
-                  Brief
+                  Insights
                 </button>
               </div>
             </div>

@@ -43,3 +43,23 @@ export const getMyPendingTasks = (tasks: Task[], isMyTask: (task: Task) => boole
 
   return myPendingTasks;
 };
+
+export const getTeamTasks = (tasks: Task[], currentUserName: string) => {
+  // Get all tasks assigned to team members other than the current user
+  return tasks.filter(task => {
+    const isPending = task.status === 'pending';
+    const isAssignedToSomeoneElse = task.assignee !== currentUserName && task.assignee !== '';
+    
+    return isPending && isAssignedToSomeoneElse;
+  });
+};
+
+export const getMyTasks = (tasks: Task[], currentUserName: string) => {
+  // Get all tasks assigned to the current user
+  return tasks.filter(task => {
+    const isPending = task.status === 'pending';
+    const isAssignedToMe = task.assignee === currentUserName;
+    
+    return isPending && isAssignedToMe;
+  });
+};

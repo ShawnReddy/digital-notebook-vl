@@ -1,14 +1,19 @@
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { mockTasks, mockPersonalTasks, type Task, type PersonalTask } from '@/data/taskData';
+import { mockPersonalTasks, getMockTasks, type Task, type PersonalTask } from '@/data/taskData';
 
 export const useTaskManagement = () => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<Task[]>(getMockTasks());
   const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>(mockPersonalTasks);
+
+  // Refresh tasks when user profile changes
+  useEffect(() => {
+    setTasks(getMockTasks());
+  }, [userProfile]);
 
   // Helper function to check if a task belongs to the current user
   const isMyTask = (task: Task): boolean => {

@@ -66,7 +66,7 @@ const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onBriefClick, showCo
             onClick={() => onBriefClick(meeting)}
             className="px-2 py-1 text-xs border border-gray-300 bg-white hover:bg-gray-50"
           >
-            Brief
+            Insights
           </button>
         </div>
       </div>

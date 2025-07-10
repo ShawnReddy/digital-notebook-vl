@@ -34,7 +34,7 @@ const AuthPage = () => {
       <div className="w-full max-w-sm">
         <div className="text-center mb-4">
           <h1 className="text-xl font-bold text-gray-900 mb-2">
-            Digital Notebook
+            Sage Planner
           </h1>
           <p className="text-gray-600">Please sign in to continue.</p>
         </div>

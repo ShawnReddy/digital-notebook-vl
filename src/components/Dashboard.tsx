@@ -7,6 +7,7 @@ import StatsOverview from './StatsOverview';
 import TodaysSchedule from './TodaysSchedule';
 import TaskManagementPane from './TaskManagementPane';
 import { type Task, type PersonalTask } from '@/data/taskData';
+import PendingTasksTable from './PendingTasksTable';
 
 interface Meeting {
   id: string;
@@ -33,7 +34,7 @@ const Dashboard = () => {
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingPersonalTask, setEditingPersonalTask] = useState<PersonalTask | null>(null);
-  const [taskModalPreset, setTaskModalPreset] = useState<{ company: string; person: string } | null>(null);
+  const [taskModalPreset, setTaskModalPreset] = useState<{ account: string; contact: string } | null>(null);
 
   // Set document title
   useEffect(() => {
@@ -91,7 +92,7 @@ const Dashboard = () => {
     setIsPersonalTaskModalOpen(true);
   };
 
-  const handleAddTaskFromClient = (preset: { company: string; person: string }) => {
+  const handleAddTaskFromClient = (preset: { account: string; contact: string }) => {
     setTaskModalPreset(preset);
     setIsTaskModalOpen(true);
   };
@@ -104,6 +105,45 @@ const Dashboard = () => {
   // Get my pending tasks using the utility function
   const myPendingTasks = getMyPendingTasks(tasks, isMyTask);
 
+  // Collect unique assignees from tasks
+  const assignees = Array.from(new Set(tasks.map(t => t.assignee)));
+
+  // Handler for completing a task
+  const handleCompleteTask = (taskId: string) => {
+    handleTaskComplete(taskId);
+  };
+
+  // Handler for adding a follow-up task
+  const handleAddFollowUp = ({ originalTask, assignee, dueDate, note }: { originalTask: Task; assignee: string; dueDate: string; note: string }) => {
+    handleTaskSave({
+      title: `Follow up: ${originalTask.title}`,
+      assignee,
+      dueDate,
+      dueTime: '',
+      priority: 'medium',
+      status: 'pending',
+      tag: originalTask.tag,
+      clientType: originalTask.clientType,
+      category: 'today',
+      source: 'manual',
+    }, null);
+  };
+
+  // Prepare color-coded badge data for overview
+  const CLIENT_TYPE_MAP = {
+    prospects: { label: 'PROSPECT', color: 'bg-blue-600 text-white' },
+    clients: { label: 'CLIENT', color: 'bg-green-700 text-white' },
+    mha: { label: 'MHA', color: 'bg-purple-600 text-white' },
+    inactive: { label: 'INACTIVE', color: 'bg-gray-700 text-white' },
+    personal: { label: 'PERSONAL', color: 'bg-indigo-600 text-white' },
+    alumni: { label: 'ALUMNI', color: 'bg-orange-600 text-white' },
+  };
+  const typeCounts = myPendingTasks.reduce<Record<string, number>>((acc, t) => {
+    const key = t.clientType;
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
   return (
     <div>
       <h1 className="text-xl font-bold mb-4">Dashboard</h1>
@@ -115,14 +155,17 @@ const Dashboard = () => {
             <div>
               <span className="text-sm">Meetings: {meetings.length}</span>
             </div>
-            <div>
-              <button 
-                onClick={() => setIsTaskBreakdownOpen(true)}
-                className="text-sm underline"
+          </div>
+          {/* Color-coded badges only */}
+          <div className="flex gap-2 mt-4">
+            {Object.entries(CLIENT_TYPE_MAP).map(([key, { label, color }]) => (
+              <span
+                key={key}
+                className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${color}`}
               >
-                Pending Tasks: {myPendingTasks.length}
-              </button>
-            </div>
+                {label} <span>{typeCounts[key] || 0}</span>
+              </span>
+            ))}
           </div>
         </div>
       </div>
@@ -134,37 +177,31 @@ const Dashboard = () => {
 
         <div>
           <TaskManagementPane 
-            tasks={tasks}
-            onAddPersonalTask={handleAddPersonalTask}
+            tasks={myPendingTasks}
+            assignees={assignees}
+            onComplete={handleCompleteTask}
+            onAddFollowUp={handleAddFollowUp}
             onAddManualTask={handleAddManualTask}
-            onAddTaskFromClient={handleAddTaskFromClient}
-            onTaskComplete={handleTaskComplete}
-            onEditTask={handleEditTask}
-            isMyTask={isMyTask}
           />
         </div>
       </div>
 
       <DashboardModals
-        isTaskModalOpen={isTaskModalOpen}
-        setIsTaskModalOpen={setIsTaskModalOpen}
-        isPersonalTaskModalOpen={isPersonalTaskModalOpen}
-        setIsPersonalTaskModalOpen={setIsPersonalTaskModalOpen}
-        isBriefModalOpen={isBriefModalOpen}
-        setIsBriefModalOpen={setIsBriefModalOpen}
-        isTaskBreakdownOpen={isTaskBreakdownOpen}
-        setIsTaskBreakdownOpen={setIsTaskBreakdownOpen}
+        showTaskModal={isTaskModalOpen}
+        setShowTaskModal={setIsTaskModalOpen}
+        showPersonalTaskModal={isPersonalTaskModalOpen}
+        setShowPersonalTaskModal={setIsPersonalTaskModalOpen}
+        showTaskBreakdownModal={isTaskBreakdownOpen}
+        setShowTaskBreakdownModal={setIsTaskBreakdownOpen}
         editingTask={editingTask}
         setEditingTask={setEditingTask}
         editingPersonalTask={editingPersonalTask}
         setEditingPersonalTask={setEditingPersonalTask}
-        selectedMeeting={selectedMeeting}
-        setSelectedMeeting={setSelectedMeeting}
         taskModalPreset={taskModalPreset}
         setTaskModalPreset={setTaskModalPreset}
         onTaskSave={onTaskSave}
         onPersonalTaskSave={onPersonalTaskSave}
-        myPendingTasks={myPendingTasks}
+        onTaskComplete={handleTaskComplete}
       />
     </div>
   );

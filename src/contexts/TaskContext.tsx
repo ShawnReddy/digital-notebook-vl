@@ -1,8 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from './AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { mockTasks, mockPersonalTasks, type Task, type PersonalTask } from '@/data/taskData';
+import { mockPersonalTasks, getMockTasks, type Task, type PersonalTask } from '@/data/taskData';
 
 interface TaskContextType {
   tasks: Task[];
@@ -11,19 +11,37 @@ interface TaskContextType {
   handleTaskSave: (taskData: Omit<Task, 'id'>, editingTask?: Task | null) => void;
   handlePersonalTaskSave: (taskData: Omit<PersonalTask, 'id'>, editingPersonalTask?: PersonalTask | null) => void;
   handleTaskComplete: (taskId: string) => void;
+  refreshTasks: () => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const useTaskContext = () => {
+  const context = useContext(TaskContext);
+  if (context === undefined) {
+    throw new Error('useTaskContext must be used within a TaskProvider');
+  }
+  return context;
+};
+
+export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<Task[]>(getMockTasks());
   const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>(mockPersonalTasks);
+
+  // Refresh tasks when user profile changes
+  useEffect(() => {
+    setTasks(getMockTasks());
+  }, [userProfile]);
+
+  const refreshTasks = () => {
+    setTasks(getMockTasks());
+  };
 
   // Helper function to check if a task belongs to the current user
   const isMyTask = (task: Task): boolean => {
-    const currentUserName = userProfile?.full_name || 'Shawn';
+    const currentUserName = userProfile?.full_name || 'Shawn Reddy';
     
     console.log('Checking isMyTask for:', {
       taskId: task.id,
@@ -38,24 +56,24 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Task is mine - assigned to current user name');
       return true;
     }
-    if (task.assignee === 'Shawn') {
-      console.log('Task is mine - assigned to Shawn');
+    if (task.assignee === 'Shawn Reddy') {
+      console.log('Task is mine - assigned to Shawn Reddy');
       return true;
     }
     
-    // Check if tagged to me (person tag with my name)
-    if (task.tag.type === 'person' && task.tag.name === currentUserName) {
+    // Check if tagged to me (contact tag with my name)
+    if (task.tag.type === 'contact' && task.tag.name === currentUserName) {
       console.log('Task is mine - tagged to current user name');
       return true;
     }
-    if (task.tag.type === 'person' && task.tag.name === 'Shawn') {
-      console.log('Task is mine - tagged to Shawn');
+    if (task.tag.type === 'contact' && task.tag.name === 'Shawn Reddy') {
+      console.log('Task is mine - tagged to Shawn Reddy');
       return true;
     }
     
-    // Check if tagged to me (company tag and I'm the assignee)
-    if (task.tag.type === 'company' && (task.assignee === currentUserName || task.assignee === 'Shawn')) {
-      console.log('Task is mine - company tag with me as assignee');
+    // Check if tagged to me (account tag and I'm the assignee)
+    if (task.tag.type === 'account' && (task.assignee === currentUserName || task.assignee === 'Shawn Reddy')) {
+      console.log('Task is mine - account tag with me as assignee');
       return true;
     }
     
@@ -136,17 +154,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isMyTask,
       handleTaskSave,
       handlePersonalTaskSave,
-      handleTaskComplete
+      handleTaskComplete,
+      refreshTasks
     }}>
       {children}
     </TaskContext.Provider>
   );
-};
-
-export const useTaskContext = () => {
-  const context = useContext(TaskContext);
-  if (context === undefined) {
-    throw new Error('useTaskContext must be used within a TaskProvider');
-  }
-  return context;
 };

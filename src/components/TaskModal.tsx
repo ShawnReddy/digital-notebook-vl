@@ -2,7 +2,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { type Task } from '@/data/taskData';
-import { useTaskForm } from '@/hooks/useTaskForm';
+import { useTaskForm, teamMembers } from '@/hooks/useTaskForm';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -10,8 +10,8 @@ interface TaskModalProps {
   onSave: (task: Omit<Task, 'id'>) => void;
   task?: Task | null;
   preset?: {
-    company: string;
-    person: string;
+    account: string;
+    contact: string;
   } | null;
 }
 
@@ -27,10 +27,10 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
   const isAutoTagged = !!preset;
 
   const people = [
-    { name: 'Jennifer Martinez', company: 'ABC Corporation' },
-    { name: 'Sarah Williams', company: 'Innovative Solutions Inc' },
-    { name: 'Robert Chen', company: 'XYZ Solutions Ltd' },
-    { name: 'Michael Thompson', company: 'Global Tech Solutions' }
+    { name: 'Jennifer Martinez', account: 'ABC Corporation' },
+    { name: 'Sarah Williams', account: 'Innovative Solutions Inc' },
+    { name: 'Robert Chen', account: 'XYZ Solutions Ltd' },
+    { name: 'Michael Thompson', account: 'Global Tech Solutions' }
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -103,21 +103,29 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
 
           <div>
             <label className="text-sm font-bold">Assigned To</label>
-            <div className="px-2 py-1 border border-gray-300 bg-gray-100 text-sm">
-              {currentUserName} (You)
-            </div>
+            <select
+              value={formData.assignee}
+              onChange={(e) => handleInputChange('assignee', e.target.value)}
+              className="w-full px-2 py-1 border border-gray-300 text-sm"
+            >
+              {teamMembers.map((member) => (
+                <option key={member} value={member}>
+                  {member} {member === currentUserName ? '(You)' : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
             <label className="text-sm font-bold">Tag Type</label>
             <select
               value={formData.tag.type}
-              onChange={(e) => handleTagTypeChange(e.target.value as 'company' | 'person' | 'personal')}
+              onChange={(e) => handleTagTypeChange(e.target.value as 'account' | 'contact' | 'personal')}
               className="w-full px-2 py-1 border border-gray-300 text-sm"
             >
               <option value="personal">Personal</option>
-              <option value="company">Company</option>
-              <option value="person">Person</option>
+              <option value="account">Account</option>
+              <option value="contact">Contact</option>
             </select>
           </div>
 
@@ -128,7 +136,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSave, task, pr
                 type="text"
                 value={formData.tag.name}
                 onChange={(e) => handleTagNameChangeWithPeople(e.target.value)}
-                placeholder={formData.tag.type === 'company' ? 'Company name' : 'Person name'}
+                placeholder={formData.tag.type === 'account' ? 'Account name' : 'Contact name'}
                 className="w-full px-2 py-1 border border-gray-300 text-sm"
               />
             </div>
